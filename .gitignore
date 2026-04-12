@@ -1,0 +1,22 @@
+# Database configuration (IMPORTANT: Do not commit your real password!)
+/config/database.php
+/.env
+
+# Local development and debug scripts
+/check-db-structure.php
+/debug-db.php
+/fix-accounts-db.php
+/fix-announcements-db.php
+/fix-db.php
+/test-mysql.php
+/db-structure.txt
+
+# Local data
+/data/banking.db
+
+# System / IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
