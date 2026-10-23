@@ -1,6 +1,7 @@
 <?php
 // views/layout/header.php
 require_once __DIR__ . '/../../includes/auth.php';
+$logged_in = isLoggedIn();
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 <!DOCTYPE html>
@@ -11,17 +12,19 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <title>AlphaBank - Secure Modern Banking</title>
     <meta name="csrf-token" content="<?php echo getCsrfToken(); ?>">
     <script>
-        const CURRENCY_SYMBOL = '<?php echo isLoggedIn() ? getCurrencySymbol() : "$"; ?>';
+        const CURRENCY_SYMBOL = '<?php echo $logged_in ? getCurrencySymbol() : "$"; ?>';
     </script>
     <link rel="icon" type="image/jpeg" href="logo.jpg">
     <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header>
         <div class="container">
             <h1 class="logo-text"><img src="logo.jpg" alt="AlphaBank Logo" class="logo-img">AlphaBank</h1>
-            <nav>
-                <?php if (isLoggedIn()): ?>
+            <button class="nav-toggle" type="button" aria-controls="primary-nav" aria-expanded="false">Menu</button>
+            <nav id="primary-nav" aria-label="Main navigation">
+                <?php if ($logged_in): ?>
                     <?php if (isAdmin()): ?>
                         <a href="admin.php" class="<?php echo $current_page == 'admin.php' ? 'active' : ''; ?>" style="color: var(--warning-color);">Admin Panel</a>
                     <?php else: ?>
@@ -38,12 +41,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     
                     <?php if (!isAdmin()): ?>
                     <div class="notification-wrapper" id="notification-trigger">
-                        <button class="notification-bell-btn">🔔</button>
+                        <button type="button" class="notification-bell-btn" aria-label="Notifications" aria-expanded="false" aria-controls="notification-dropdown">🔔</button>
                         <span class="notification-badge" id="nav-badge">0</span>
                         <div class="notification-dropdown" id="notification-dropdown">
                             <div class="notification-header">
                                 Notifications
-                                <span id="mark-read" style="font-size: 0.7rem; color: var(--secondary-color); cursor: pointer;">Mark all as read</span>
+                                <button type="button" id="mark-read" class="text-button">Mark all as read</button>
                             </div>
                             <div class="notification-list" id="notification-list">
                                 <div class="empty-notifications">Loading...</div>
@@ -52,7 +55,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     </div>
                     <?php endif; ?>
 
-                    <a href="logout.php" class="btn-logout">Logout</a>
+                    <form action="logout.php" method="post" class="logout-form">
+                        <input type="hidden" name="csrf_token" value="<?php echo getCsrfToken(); ?>">
+                        <button type="submit" class="btn-logout">Logout</button>
+                    </form>
                 <?php else: ?>
                     <a href="login.php" class="<?php echo $current_page == 'login.php' ? 'active' : ''; ?>">Login</a>
                     <a href="register.php" class="<?php echo $current_page == 'register.php' ? 'active' : ''; ?>">Register</a>
@@ -60,4 +66,4 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </nav>
         </div>
     </header>
-    <main class="container">
+    <main class="container" id="main-content">

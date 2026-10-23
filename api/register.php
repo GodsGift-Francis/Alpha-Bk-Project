@@ -1,52 +1,22 @@
 <?php
-// api/register.php
-
-$db = require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../includes/auth.php';
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('HTTP/1.1 405 Method Not Allowed');
-    exit();
-}
-
-verifyCsrfToken($_POST['csrf_token'] ?? '');
-
-$username = $_POST['username'] ?? '';
-$email = $_POST['email'] ?? '';
+require_once __DIR__ . '/../includes/api.php';
+apiPost();
+$username = inputText('username', 50);
+$email = inputText('email', 100);
+$name = inputText('full_name', 100);
 $password = $_POST['password'] ?? '';
-$full_name = $_POST['full_name'] ?? '';
-
-if (empty($username) || empty($email) || empty($password) || empty($full_name)) {
-    die(json_encode(['error' => 'All fields are required']));
-}
-
-$password_hash = password_hash($password, PASSWORD_DEFAULT);
-
+if (!preg_match('/^[A-Za-z0-9_]{3,50}$/D', $username)) throw new InvalidArgumentException('Username must contain 3–50 letters, numbers or underscores.');
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) throw new InvalidArgumentException('Enter a valid email address.');
+if (!is_string($password) || strlen($password) < 12 || strlen($password) > 72) throw new InvalidArgumentException('Use a password between 12 and 72 bytes.');
 try {
     $db->beginTransaction();
-
-    // Insert user
-    $stmt = $db->prepare("INSERT INTO users (username, email, password_hash, full_name) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$username, $email, $password_hash, $full_name]);
-    $user_id = $db->lastInsertId();
-
-    // Generate a unique account number
-    do {
-        $account_number = 'ACC-' . str_pad(mt_rand(1, 9999999999), 10, '0', STR_PAD_LEFT);
-        $stmt_check = $db->prepare("SELECT id FROM accounts WHERE account_number = ?");
-        $stmt_check->execute([$account_number]);
-    } while ($stmt_check->fetch());
-
-    // Create a default Checking account
-    $stmt = $db->prepare("INSERT INTO accounts (user_id, account_number, balance, account_type) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$user_id, $account_number, 0.00, 'Checking']);
-
+    $db->prepare('INSERT INTO users (username, email, password_hash, full_name) VALUES (?, ?, ?, ?)')->execute([$username, $email, password_hash($password, PASSWORD_DEFAULT), $name]);
+    $user = $db->lastInsertId();
+    $db->prepare("INSERT INTO accounts (user_id, account_number, balance, account_type, status) VALUES (?, ?, 0.00, 'Checking', 'PENDING')")->execute([$user, 'ACC-' . random_int(1000000000, 9999999999)]);
     $db->commit();
-    echo json_encode(['success' => 'Registration successful', 'user_id' => $user_id]);
-} catch (PDOException $e) {
-    $db->rollBack();
-    if ($e->getCode() == 23000) { // Unique constraint violation
-        die(json_encode(['error' => 'Username or Email already exists']));
-    }
-    die(json_encode(['error' => 'Registration failed: ' . $e->getMessage()]));
+    jsonResponse(['success' => 'Registration successful. Your account is awaiting approval.'], 201);
+} catch (PDOException $error) {
+    if ($db->inTransaction()) $db->rollBack();
+    if ($error->getCode() === '23000') jsonResponse(['error' => 'Username or email is unavailable.'], 409);
+    throw $error;
 }

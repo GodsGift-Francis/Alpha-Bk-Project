@@ -1,40 +1,15 @@
 <?php
-// api/verify-account.php
-$db = require __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../includes/auth.php';
-
-if (!isLoggedIn()) {
-    header('HTTP/1.1 401 Unauthorized');
-    exit();
-}
-
-$acc_num = trim($_GET['account_number'] ?? '');
-
-if (empty($acc_num)) {
-    die(json_encode(['error' => 'Account number is required']));
-}
-
-try {
-    // Check if account exists at all first
-    $stmt = $db->prepare("SELECT status, user_id FROM accounts WHERE account_number = ?");
-    $stmt->execute([$acc_num]);
-    $account = $stmt->fetch();
-
-    if (!$account) {
-        die(json_encode(['error' => 'Account number not found in our records']));
-    }
-
-    if ($account['status'] !== 'APPROVED') {
-        die(json_encode(['error' => 'Account found but is currently PENDING approval']));
-    }
-
-    // Account exists and is approved, get the name
-    $stmt = $db->prepare("SELECT full_name FROM users WHERE id = ?");
-    $stmt->execute([$account['user_id']]);
-    $name = $stmt->fetchColumn();
-
-    echo json_encode(['success' => true, 'name' => $name]);
-
-} catch (PDOException $e) {
-    die(json_encode(['error' => 'Server error: ' . $e->getMessage()]));
-}
+require_once __DIR__ . '/../includes/api.php';
+$user = apiUser();
+$number = $_GET['account_number'] ?? '';
+if (!is_string($number) || strlen($number) > 20 || trim($number) === '') throw new InvalidArgumentException('Enter a valid recipient account number.');
+$bucket = hash('sha256', 'lookup:' . $user);
+$db->prepare("INSERT INTO login_limits (bucket, attempts, window_started) VALUES (?, 1, UTC_TIMESTAMP()) ON DUPLICATE KEY UPDATE attempts = IF(window_started < UTC_TIMESTAMP() - INTERVAL 15 MINUTE, 1, attempts + 1), window_started = IF(window_started < UTC_TIMESTAMP() - INTERVAL 15 MINUTE, UTC_TIMESTAMP(), window_started)")->execute([$bucket]);
+$stmt = $db->prepare('SELECT attempts FROM login_limits WHERE bucket = ?');
+$stmt->execute([$bucket]);
+if ((int)$stmt->fetchColumn() > 100) { header('Retry-After: 900'); jsonResponse(['error' => 'Too many lookups. Please try again later.'], 429); }
+$stmt = $db->prepare("SELECT u.full_name FROM accounts a JOIN users u ON u.id = a.user_id WHERE a.account_number = ? AND a.status = 'APPROVED' AND u.status = 'ACTIVE'");
+$stmt->execute([trim($number)]);
+$name = $stmt->fetchColumn();
+if ($name === false) jsonResponse(['error' => 'Recipient account not found or unavailable.'], 404);
+jsonResponse(['success' => true, 'name' => $name]);

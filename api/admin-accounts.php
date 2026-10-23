@@ -1,33 +1,19 @@
 <?php
-// api/admin-accounts.php
-$db = require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../includes/auth.php';
-
-requireAdmin();
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('HTTP/1.1 405 Method Not Allowed');
-    exit();
-}
-
-$account_id = $_POST['account_id'] ?? 0;
-$action = $_POST['action'] ?? ''; // 'APPROVE' or 'REJECT'
-
-if (!$account_id || !in_array($action, ['APPROVE', 'REJECT'])) {
-    die(json_encode(['error' => 'Invalid parameters']));
-}
-
-try {
-    if ($action === 'APPROVE') {
-        $stmt = $db->prepare("UPDATE accounts SET status = 'APPROVED' WHERE id = ?");
-        $stmt->execute([$account_id]);
-        echo json_encode(['success' => 'Account approved successfully']);
-    } else {
-        // If rejected, delete the account entirely so it's removed from both sides
-        $stmt = $db->prepare("DELETE FROM accounts WHERE id = ?");
-        $stmt->execute([$account_id]);
-        echo json_encode(['success' => 'Account request rejected and removed']);
-    }
-} catch (PDOException $e) {
-    die(json_encode(['error' => $e->getMessage()]));
-}
+require_once __DIR__ . '/../includes/api.php';
+require_once __DIR__ . '/../includes/transactions.php';
+$admin = apiUser(true);
+apiPost();
+$id = inputId('account_id');
+$action = inputText('action', 10);
+$reason = inputText('reason', 500, false);
+if (!in_array($action, ['APPROVE', 'REJECT'], true)) throw new InvalidArgumentException('Invalid action.');
+if ($action === 'REJECT' && strlen($reason) < 3) throw new InvalidArgumentException('Please provide a rejection reason.');
+$db->beginTransaction();
+$stmt = $db->prepare('SELECT status FROM accounts WHERE id = ? FOR UPDATE');
+$stmt->execute([$id]);
+if ($stmt->fetchColumn() !== 'PENDING') throw new DomainException('Account request not found or already processed.');
+$status = $action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
+$db->prepare('UPDATE accounts SET status = ?, reviewed_by = ?, reviewed_at = UTC_TIMESTAMP(), review_reason = ? WHERE id = ?')->execute([$status, $admin, $reason ?: null, $id]);
+auditEvent($db, $admin, $status, 'account', $id, ['reason' => $reason]);
+$db->commit();
+jsonResponse(['success' => 'Account request ' . strtolower($status) . '.']);

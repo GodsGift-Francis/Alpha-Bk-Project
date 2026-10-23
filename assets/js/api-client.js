@@ -1,45 +1,21 @@
-// assets/js/api-client.js
 const API = {
-    async post(url, data) {
-        const formData = new FormData();
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        formData.append('csrf_token', csrfToken);
-        
-        for (const key in data) {
-            formData.append(key, data[key]);
-        }
-        
+    async request(url, options = {}) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 20000);
         try {
-            const response = await fetch(url, {
-                method: 'POST',
-                body: formData
-            });
-            const text = await response.text();
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                console.error('Server returned non-JSON:', text);
-                return { error: 'Server error: Invalid response format' };
-            }
+            const response = await fetch(url, { credentials: 'same-origin', ...options, signal: controller.signal });
+            const result = await response.json();
+            if (!response.ok && !result.error) return { error: 'Request failed. Please try again.', status: response.status };
+            return { ...result, httpStatus: response.status };
         } catch (error) {
-            console.error('API Error:', error);
-            return { error: 'Network error or server unavailable' };
-        }
+            return { error: error.name === 'AbortError' ? 'The request timed out. Check your history before retrying a transaction.' : 'Unable to reach the server. Please try again.' };
+        } finally { clearTimeout(timeout); }
     },
-    
-    async get(url) {
-        try {
-            const response = await fetch(url);
-            const text = await response.text();
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                console.error('Server returned non-JSON:', text);
-                return { error: 'Server error: Invalid response format' };
-            }
-        } catch (error) {
-            console.error('API Error:', error);
-            return { error: 'Network error or server unavailable' };
-        }
-    }
+    post(url, data = {}) {
+        const formData = new FormData();
+        for (const [key, value] of Object.entries(data)) formData.append(key, value);
+        formData.set('csrf_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
+        return this.request(url, { method: 'POST', body: formData });
+    },
+    get(url) { return this.request(url); }
 };

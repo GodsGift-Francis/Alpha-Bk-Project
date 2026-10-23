@@ -1,23 +1,24 @@
 <?php
 // login.php
-require_once __DIR__ . '/views/layout/header.php';
+require_once __DIR__ . '/includes/auth.php';
 
 if (isLoggedIn()) {
-    header('Location: dashboard.php');
+    header('Location: ' . (isAdmin() ? 'admin.php' : 'dashboard.php'));
     exit();
 }
+require_once __DIR__ . '/views/layout/header.php';
 ?>
 <div class="card max-w-sm">
     <h2 class="card-title text-center">Login to AlphaBank</h2>
-    <div id="login-alert"></div>
+    <div id="login-alert" aria-live="polite"></div>
     <form id="login-form">
         <div class="form-group">
             <label for="username">Username</label>
-            <input type="text" id="username" name="username" placeholder="Enter your username" required>
+            <input type="text" id="username" name="username" maxlength="50" autocomplete="username" placeholder="Enter your username" required>
         </div>
         <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="••••••••" required>
+            <input type="password" id="password" name="password" maxlength="72" autocomplete="current-password" placeholder="••••••••" required>
         </div>
         <button type="submit" class="btn btn-primary btn-block">Sign In</button>
     </form>

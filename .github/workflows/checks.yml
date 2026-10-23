@@ -1,0 +1,52 @@
+name: AlphaBank checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: test-only
+          MYSQL_ROOT_HOST: '%'
+          MYSQL_DATABASE: alphabank
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -ptest-only"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DB_DSN: mysql:host=127.0.0.1;port=3306;dbname=alphabank;charset=utf8mb4
+      DB_USER: root
+      DB_PASSWORD: test-only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql
+          coverage: none
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Configure disposable CI database
+        run: cp config/database.example.php config/database.php
+      - name: PHP and JavaScript syntax
+        run: |
+          find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+          for file in assets/js/*.js; do node --check "$file"; done
+      - name: Initialize and repeat migration
+        run: |
+          php includes/db-init.php
+          php scripts/migrate.php
+      - name: Financial integrity and concurrent approvals
+        run: php tests/integrity.php
+      - name: HTTP authorization and workflow regression
+        run: python3 tests/http_browser.py
+      - name: Isolated preview access and synthetic data
+        run: python3 tests/preview_http.py

@@ -1,267 +1,195 @@
-// assets/js/app.js
-const escapeHTML = (str) => {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+const maskAccountNumber = value => String(value ?? '').replace(/.(?=.{4})/g, '*');
+const displayAmount = value => {
+    const [whole, cents = '00'] = String(value).split('.');
+    return `${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${cents.padEnd(2, '0')}`;
 };
-
-const maskAccountNumber = (accNum) => {
-    if (!accNum) return '';
-    const visibleDigits = 4;
-    const maskedPart = accNum.slice(0, -visibleDigits).replace(/[a-zA-Z0-9]/g, '*');
-    const visiblePart = accNum.slice(-visibleDigits);
-    return maskedPart + visiblePart;
+const displayDate = value => {
+    if (!value) return '—';
+    const date = new Date(value.replace(' ', 'T') + 'Z');
+    return Number.isNaN(date.valueOf()) ? '—' : date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 };
-
-const EYE_OPEN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-const EYE_CLOSED_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
-
-window.toggleAccountNumber = (btn) => {
-    const container = btn.closest('.account-number-container');
-    const span = container.querySelector('.account-number');
-    const isMasked = span.getAttribute('data-masked') === 'true';
-    const fullNumber = span.getAttribute('data-full');
-    
-    if (isMasked) {
-        span.textContent = fullNumber;
-        span.setAttribute('data-masked', 'false');
-        btn.innerHTML = EYE_CLOSED_SVG;
-        btn.title = 'Hide account number';
-    } else {
-        span.textContent = maskAccountNumber(fullNumber);
-        span.setAttribute('data-masked', 'true');
-        btn.innerHTML = EYE_OPEN_SVG;
-        btn.title = 'Show account number';
+function showMessage(target, message, error = false) {
+    const container = typeof target === 'string' ? document.getElementById(target) : target;
+    if (!container) return;
+    const alert = document.createElement('div');
+    alert.className = `alert ${error ? 'alert-error' : 'alert-success'}`;
+    alert.setAttribute('role', error ? 'alert' : 'status');
+    alert.textContent = message || 'The request could not be completed.';
+    container.replaceChildren(alert);
+}
+async function withBusy(form, action) {
+    if (form.dataset.busy === 'true' || form.dataset.completed === 'true') return;
+    form.dataset.busy = 'true';
+    form.setAttribute('aria-busy', 'true');
+    const buttons = [...form.querySelectorAll('[type="submit"]')];
+    buttons.forEach(button => { button.disabled = true; });
+    try { await action(); }
+    finally {
+        form.dataset.busy = 'false';
+        form.removeAttribute('aria-busy');
+        if (form.dataset.completed !== 'true') buttons.forEach(button => { button.disabled = false; });
     }
-};
+}
+function reviewRequest(data) {
+    return new Promise(resolve => {
+        const dialog = document.createElement('dialog');
+        dialog.setAttribute('aria-labelledby', 'request-review-title');
+        dialog.innerHTML = '<div class="card"><h3 class="card-title" id="request-review-title">Review your request</h3><dl class="review-details"></dl><p class="form-note">An administrator must approve this request before your balance changes.</p><div class="row-actions"><button type="button" class="btn btn-primary" data-confirm>Submit request</button><button type="button" class="btn btn-secondary" data-cancel>Go back</button></div></div>';
+        const details = dialog.querySelector('dl');
+        const values = [['Type', data.action], ['From account', data.account_number], ['Amount', CURRENCY_SYMBOL + displayAmount(data.amount)]];
+        if (data.recipient_account) values.push(['Recipient account', data.recipient_account]);
+        if (data.description) values.push(['Description', data.description]);
+        values.forEach(([label, value]) => {
+            const term = document.createElement('dt'); term.textContent = label;
+            const definition = document.createElement('dd'); definition.textContent = value;
+            details.append(term, definition);
+        });
+        dialog.querySelector('[data-confirm]').addEventListener('click', () => dialog.close('confirm'));
+        dialog.querySelector('[data-cancel]').addEventListener('click', () => dialog.close('cancel'));
+        dialog.addEventListener('close', () => { resolve(dialog.returnValue === 'confirm'); dialog.remove(); }, { once: true });
+        document.body.append(dialog);
+        dialog.showModal();
+    });
+}
+const accountControl = number => `<div class="account-number-container"><span class="account-number" data-number="${escapeHTML(number)}">${escapeHTML(maskAccountNumber(number))}</span><button type="button" class="toggle-account-btn" data-toggle-account aria-label="Show account number" aria-pressed="false">Show</button></div>`;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Registration Form
-    const registerForm = document.getElementById('register-form');
-    if (registerForm) {
-        registerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(registerForm);
-            const data = Object.fromEntries(formData.entries());
-            
-            const result = await API.post('api/register.php', data);
-            const alertDiv = document.getElementById('register-alert');
-            
-            if (result.success) {
-                alertDiv.innerHTML = `<div class="alert alert-success">${result.success}. Redirecting to login...</div>`;
-                setTimeout(() => window.location.href = 'login.php', 2000);
-            } else {
-                alertDiv.innerHTML = `<div class="alert alert-error">${result.error}</div>`;
-            }
+    const menu = document.querySelector('.nav-toggle');
+    menu?.addEventListener('click', () => {
+        const expanded = menu.getAttribute('aria-expanded') !== 'true';
+        menu.setAttribute('aria-expanded', String(expanded));
+        document.getElementById('primary-nav').classList.toggle('is-open', expanded);
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            menu?.setAttribute('aria-expanded', 'false');
+            document.getElementById('primary-nav')?.classList.remove('is-open');
+        }
+    });
+    document.addEventListener('click', event => {
+        const button = event.target.closest('[data-toggle-account]');
+        if (button) {
+            const span = button.parentElement.querySelector('[data-number]');
+            const show = button.getAttribute('aria-pressed') !== 'true';
+            span.textContent = show ? span.dataset.number : maskAccountNumber(span.dataset.number);
+            button.setAttribute('aria-pressed', String(show));
+            button.setAttribute('aria-label', show ? 'Hide account number' : 'Show account number');
+            button.textContent = show ? 'Hide' : 'Show';
+        }
+        if (event.target.closest('[data-close-dialog]')) event.target.closest('dialog')?.close();
+    });
+    for (const [id, endpoint, destination] of [
+        ['register', 'api/register.php', () => 'login.php'],
+        ['login', 'api/login.php', result => result.is_admin ? 'admin.php' : 'dashboard.php'],
+        ['settings', 'api/settings.php', () => null]
+    ]) {
+        const form = document.getElementById(`${id}-form`);
+        form?.addEventListener('submit', event => {
+            event.preventDefault();
+            withBusy(form, async () => {
+                const result = await API.post(endpoint, Object.fromEntries(new FormData(form)));
+                showMessage(`${id}-alert`, result.error || result.success, !result.success);
+                if (result.success) {
+                    const next = destination(result);
+                    if (next) { form.dataset.completed = 'true'; setTimeout(() => location.href = next, 850); }
+                    else if (id === 'settings') { form.dataset.completed = 'true'; setTimeout(() => location.reload(), 850); }
+                }
+            });
         });
     }
+    const dashboard = document.getElementById('dashboard-content');
+    async function loadAccounts() {
+        dashboard.innerHTML = '<div class="card" role="status">Loading accounts…</div>';
+        const result = await API.get('api/accounts.php');
+        if (result.error) {
+            showMessage(dashboard, result.error, true);
+            const retry = document.createElement('button'); retry.className = 'btn btn-secondary'; retry.textContent = 'Retry loading accounts'; retry.addEventListener('click', loadAccounts); dashboard.append(retry);
+            return;
+        }
+        if (!result.accounts.length) { dashboard.innerHTML = '<div class="card">No accounts yet. Open an account to get started.</div>'; return; }
+        dashboard.innerHTML = `<div class="accounts-grid">${result.accounts.map(account => `<article class="card account-card"><div class="section-heading"><h3>${escapeHTML(account.account_type)} Account</h3><span class="badge ${account.status === 'APPROVED' ? 'badge-deposit' : account.status === 'PENDING' ? 'badge-transfer_out' : 'badge-withdrawal'}">${escapeHTML(account.status)}</span></div><p class="balance">${escapeHTML(CURRENCY_SYMBOL + displayAmount(account.balance))}</p>${accountControl(account.account_number)}${account.status === 'PENDING' ? '<p class="form-note">Awaiting administrator approval.</p>' : ''}${account.review_reason ? `<p class="form-note">Review: ${escapeHTML(account.review_reason)}</p>` : ''}</article>`).join('')}</div>`;
+    }
+    if (dashboard) loadAccounts();
+    const history = document.getElementById('history-content');
+    const filters = document.getElementById('history-filters');
+    let historyVersion = 0;
+    async function loadHistory(page = 1) {
+        const version = ++historyVersion;
+        const query = new URLSearchParams(filters ? new FormData(filters) : undefined);
+        query.set('page', page);
+        history.setAttribute('aria-busy', 'true');
+        history.innerHTML = '<div class="card" role="status">Loading transaction history…</div>';
+        const result = await API.get(`api/history.php?${query}`);
+        if (version !== historyVersion) return;
+        history.removeAttribute('aria-busy');
+        if (result.error) {
+            showMessage(history, result.error, true);
+            const retry = document.createElement('button'); retry.className = 'btn btn-secondary'; retry.textContent = 'Retry loading history'; retry.addEventListener('click', () => loadHistory(page)); history.append(retry); return;
+        }
+        if (!result.history.length) { history.innerHTML = '<div class="card text-secondary">No transactions match these filters.</div>'; return; }
+        history.innerHTML = `<div class="table-container" tabindex="0" role="region" aria-label="Transaction history"><table class="history-table"><thead><tr><th scope="col">Reference / Submitted</th><th scope="col">Account</th><th scope="col">Type</th><th scope="col">Amount</th><th scope="col">Status</th><th scope="col">Details</th></tr></thead><tbody>${result.history.map(tx => {
+            const credit = ['DEPOSIT', 'TRANSFER_IN'].includes(tx.transaction_type);
+            const statusClass = tx.status === 'APPROVED' ? 'badge-deposit' : tx.status === 'PENDING' ? 'badge-transfer_out' : 'badge-withdrawal';
+            return `<tr><td><strong>TX-${escapeHTML(tx.id)}</strong><br><span class="text-secondary text-sm">${escapeHTML(displayDate(tx.timestamp))}</span></td><td>${accountControl(tx.account_number)}</td><td>${escapeHTML(tx.transaction_type.replaceAll('_', ' '))}</td><td class="font-bold nowrap ${tx.status === 'APPROVED' ? credit ? 'text-success' : 'text-error' : ''}">${credit ? '+' : '−'}${escapeHTML(CURRENCY_SYMBOL + displayAmount(tx.amount))}</td><td><span class="badge ${statusClass}">${escapeHTML(tx.status)}</span></td><td>${escapeHTML(tx.description || '—')}${tx.reviewed_at ? `<br><span class="text-secondary text-sm">Reviewed ${escapeHTML(displayDate(tx.reviewed_at))}</span>` : ''}${tx.review_reason ? `<br><strong>Reason:</strong> ${escapeHTML(tx.review_reason)}` : ''}</td></tr>`;
+        }).join('')}</tbody></table></div><div class="pagination"><button type="button" class="btn btn-secondary" data-prev>Previous</button><span>Page ${result.pagination.page} of ${result.pagination.pages} · ${result.pagination.total} records</span><button type="button" class="btn btn-secondary" data-next>Next</button></div>`;
+        const previous = history.querySelector('[data-prev]'); const next = history.querySelector('[data-next]');
+        previous.disabled = result.pagination.page <= 1; next.disabled = result.pagination.page >= result.pagination.pages;
+        previous.addEventListener('click', () => loadHistory(result.pagination.page - 1));
+        next.addEventListener('click', () => loadHistory(result.pagination.page + 1));
+    }
+    if (history) loadHistory();
+    filters?.addEventListener('submit', event => { event.preventDefault(); loadHistory(); });
+    filters?.addEventListener('reset', () => setTimeout(() => loadHistory(), 0));
 
-    // Login Form
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(loginForm);
-            const data = Object.fromEntries(formData.entries());
-            
-            const result = await API.post('api/login.php', data);
-            const alertDiv = document.getElementById('login-alert');
-            
-            if (result.success) {
-                alertDiv.innerHTML = `<div class="alert alert-success">${result.success}. Redirecting...</div>`;
-                setTimeout(() => window.location.href = 'dashboard.php', 1000);
-            } else {
-                alertDiv.innerHTML = `<div class="alert alert-error">${result.error}</div>`;
-            }
+    for (const kind of ['deposit', 'withdraw', 'transfer']) {
+        const form = document.getElementById(`${kind}-form`);
+        form?.addEventListener('submit', event => {
+            event.preventDefault();
+            const data = Object.fromEntries(new FormData(form));
+            withBusy(form, async () => {
+                if (!await reviewRequest(data)) return;
+                const scope = document.querySelector('meta[name="csrf-token"]').content;
+                const storageKey = 'alphabank:request:' + scope + ':' + JSON.stringify(data);
+                let key;
+                try { key = sessionStorage.getItem(storageKey); } catch (_) { /* Storage may be unavailable. */ }
+                // Retain the key in memory and session storage after an uncertain network response.
+                key ||= form.requestKeys?.[storageKey];
+                key ||= [...crypto.getRandomValues(new Uint8Array(16))].map(value => value.toString(16).padStart(2, '0')).join('');
+                form.requestKeys ||= {}; form.requestKeys[storageKey] = key;
+                try { sessionStorage.setItem(storageKey, key); } catch (_) { /* In-memory retry key remains available. */ }
+                const result = await API.post('api/transactions.php', { ...data, request_key: key });
+                showMessage(`${kind}-alert`, result.error || `${result.reference}: ${result.success}`, !result.success);
+                if (result.success) {
+                    form.dataset.completed = 'true';
+                    try { sessionStorage.removeItem(storageKey); } catch (_) { /* No action needed. */ }
+                    setTimeout(() => location.href = 'dashboard.php', 1300);
+                }
+            });
         });
     }
-
-    // Dashboard Account Loading
-    const dashboardContent = document.getElementById('dashboard-content');
-    if (dashboardContent) {
-        (async () => {
-            const result = await API.get('api/accounts.php');
-            if (result.accounts && result.accounts.length > 0) {
-                let html = '<div class="accounts-grid">';
-                result.accounts.forEach(acc => {
-                    const statusBadge = acc.status === 'APPROVED' ? '' : `<span class="badge ${acc.status === 'PENDING' ? 'badge-transfer_out' : 'badge-withdrawal'}" style="margin-left: 10px;">${acc.status}</span>`;
-                    html += `
-                        <div class="card account-card">
-                            <h3>${escapeHTML(acc.account_type)} Account ${statusBadge}</h3>
-                            <p class="balance">${CURRENCY_SYMBOL}${parseFloat(acc.balance).toLocaleString('en-US', {minimumFractionDigits: 2})}</p>
-                            <div class="account-number-container">
-                                <span class="account-number" data-full="${escapeHTML(acc.account_number)}" data-masked="true">${maskAccountNumber(acc.account_number)}</span>
-                                <button class="toggle-account-btn" onclick="toggleAccountNumber(this)" title="Show account number">${EYE_OPEN_SVG}</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                dashboardContent.innerHTML = html;
-            } else {
-                dashboardContent.innerHTML = '<div class="card text-center"><p>No accounts found.</p></div>';
-            }
-        })();
-    }
-
-    // Dashboard History Loading
-    const historyContent = document.getElementById('history-content');
-    if (historyContent) {
-        (async () => {
-            const result = await API.get('api/history.php');
-            if (result.history && result.history.length > 0) {
-                let html = `
-                    <div class="table-container">
-                        <table class="history-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Account</th>
-                                    <th>Type</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-                result.history.forEach(tx => {
-                    const date = new Date(tx.timestamp).toLocaleDateString('en-US', {
-                        month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                    });
-                    const isCredit = (tx.transaction_type === 'DEPOSIT' || tx.transaction_type === 'TRANSFER_IN');
-                    const amountClass = isCredit ? 'text-success' : 'text-error';
-                    const prefix = isCredit ? '+' : '-';
-                    
-                    const statusClass = tx.status === 'APPROVED' ? 'badge-deposit' : (tx.status === 'PENDING' ? 'badge-transfer_out' : 'badge-withdrawal');
-                    
-                    html += `
-                        <tr>
-                            <td>${date}</td>
-                            <td>
-                                <div class="account-number-container">
-                                    <span class="account-number" data-full="${escapeHTML(tx.account_number)}" data-masked="true" style="font-size: 0.85rem;">${maskAccountNumber(tx.account_number)}</span>
-                                    <button class="toggle-account-btn" onclick="toggleAccountNumber(this)" title="Show account number">${EYE_OPEN_SVG}</button>
-                                </div>
-                            </td>
-                            <td><span class="badge badge-${tx.transaction_type.toLowerCase()}">${escapeHTML(tx.transaction_type.replace('_', ' '))}</span></td>
-                            <td class="${amountClass}" style="font-weight: 600;">${prefix}${CURRENCY_SYMBOL}${parseFloat(tx.amount).toFixed(2)}</td>
-                            <td><span class="badge ${statusClass}">${tx.status}</span></td>
-                            <td style="color: var(--text-secondary);">${escapeHTML(tx.description) || '<span style="color: #cbd5e1">—</span>'}</td>
-                        </tr>
-                    `;
-                });
-                html += '</tbody></table></div>';
-                historyContent.innerHTML = html;
-            } else {
-                historyContent.innerHTML = '<div class="card text-center"><p style="color: var(--text-secondary);">No transaction history available yet.</p></div>';
-            }
-        })();
-    }
-
-    // Deposit Form
-    const depositForm = document.getElementById('deposit-form');
-    if (depositForm) {
-        depositForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(depositForm);
-            const data = Object.fromEntries(formData.entries());
-            
-            const result = await API.post('api/transactions.php', data);
-            const alertDiv = document.getElementById('deposit-alert');
-            
-            if (result.success) {
-                alertDiv.innerHTML = `<div class="alert alert-success">${result.success}! Redirecting to dashboard...</div>`;
-                setTimeout(() => window.location.href = 'dashboard.php', 1500);
-            } else {
-                alertDiv.innerHTML = `<div class="alert alert-error">${result.error}</div>`;
-            }
+    const verify = document.getElementById('verify-acc-btn');
+    const recipient = document.getElementById('recipient_account');
+    recipient?.addEventListener('input', () => { document.getElementById('verify-result').textContent = ''; });
+    verify?.addEventListener('click', async () => {
+        const number = recipient.value.trim();
+        const output = document.getElementById('verify-result');
+        if (!number) { output.textContent = 'Enter a recipient account number first.'; return; }
+        verify.disabled = true; output.textContent = 'Checking recipient…';
+        const result = await API.get('api/verify-account.php?account_number=' + encodeURIComponent(number));
+        verify.disabled = false;
+        if (recipient.value.trim() === number) output.textContent = result.success ? 'Recipient: ' + result.name : result.error;
+    });
+    const createDialog = document.getElementById('create-account-modal');
+    window.showCreateAccount = () => createDialog.showModal();
+    window.hideCreateAccount = () => createDialog.close();
+    const createForm = document.getElementById('create-account-form');
+    createForm?.addEventListener('submit', event => {
+        event.preventDefault();
+        withBusy(createForm, async () => {
+            const result = await API.post('api/create-account.php', Object.fromEntries(new FormData(createForm)));
+            showMessage('create-account-alert', result.error || result.success, !result.success);
+            if (result.success) { createForm.dataset.completed = 'true'; setTimeout(() => location.reload(), 850); }
         });
-    }
-
-    // Withdraw Form
-    const withdrawForm = document.getElementById('withdraw-form');
-    if (withdrawForm) {
-        withdrawForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(withdrawForm);
-            const data = Object.fromEntries(formData.entries());
-            
-            const result = await API.post('api/transactions.php', data);
-            const alertDiv = document.getElementById('withdraw-alert');
-            
-            if (result.success) {
-                alertDiv.innerHTML = `<div class="alert alert-success">${result.success}! Redirecting to dashboard...</div>`;
-                setTimeout(() => window.location.href = 'dashboard.php', 1500);
-            } else {
-                alertDiv.innerHTML = `<div class="alert alert-error">${result.error}</div>`;
-            }
-        });
-    }
-
-    // Transfer Form
-    const transferForm = document.getElementById('transfer-form');
-    if (transferForm) {
-        const verifyBtn = document.getElementById('verify-acc-btn');
-        const verifyResult = document.getElementById('verify-result');
-        const recipientInput = document.getElementById('recipient_account');
-
-        verifyBtn.addEventListener('click', async () => {
-            const accNum = recipientInput.value;
-            if (!accNum) return alert('Enter account number first');
-            
-            verifyResult.innerText = 'Checking...';
-            verifyResult.className = 'text-sm mt-2';
-            verifyResult.style.color = 'inherit';
-            
-            const result = await API.get(`api/verify-account.php?account_number=${accNum}`);
-            if (result.success) {
-                verifyResult.innerText = `Recipient: ${result.name} (Verified ✅)`;
-                verifyResult.style.color = 'var(--accent-color)';
-            } else {
-                verifyResult.innerText = `❌ ${result.error}`;
-                verifyResult.style.color = 'var(--danger-color)';
-            }
-        });
-
-        transferForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(transferForm);
-            const data = Object.fromEntries(formData.entries());
-            
-            const result = await API.post('api/transactions.php', data);
-            const alertDiv = document.getElementById('transfer-alert');
-            
-            if (result.success) {
-                alertDiv.innerHTML = `<div class="alert alert-success">${result.success}! Redirecting to dashboard...</div>`;
-                setTimeout(() => window.location.href = 'dashboard.php', 1500);
-            } else {
-                alertDiv.innerHTML = `<div class="alert alert-error">${result.error}</div>`;
-            }
-        });
-    }
-
-    // Create Account Modal Logic
-    window.showCreateAccount = () => {
-        document.getElementById('create-account-modal').style.display = 'flex';
-    };
-    window.hideCreateAccount = () => {
-        document.getElementById('create-account-modal').style.display = 'none';
-    };
-
-    const createAccForm = document.querySelector('#create-account-form');
-    if (createAccForm) {
-        createAccForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const account_type = createAccForm.querySelector('select[name="account_type"]').value;
-            const result = await API.post('api/create-account.php', { account_type });
-            if (result.success) {
-                alert(result.success);
-                window.location.reload();
-            } else {
-                alert(result.error);
-            }
-        });
-    }
+    });
 });

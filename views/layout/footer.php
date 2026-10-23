@@ -8,7 +8,7 @@
         </div>
     </footer>
     <script src="assets/js/api-client.js"></script>
-    <script src="assets/js/notifications.js"></script>
     <script src="assets/js/app.js"></script>
+    <script src="assets/js/notifications.js"></script>
 </body>
 </html>

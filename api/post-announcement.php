@@ -1,27 +1,19 @@
 <?php
-// api/post-announcement.php
-$db = require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../includes/auth.php';
-
-requireAdmin();
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('HTTP/1.1 405 Method Not Allowed');
-    exit();
+require_once __DIR__ . '/../includes/api.php';
+require_once __DIR__ . '/../includes/transactions.php';
+$admin = apiUser(true);
+apiPost();
+$title = inputText('title', 255);
+$content = inputText('content', 4000);
+$target = inputText('user_id', 10, false);
+if ($target !== '') {
+    $target = inputId('user_id');
+    $stmt = $db->prepare('SELECT id FROM users WHERE id = ? AND is_admin = 0');
+    $stmt->execute([$target]);
+    if (!$stmt->fetchColumn()) throw new InvalidArgumentException('Recipient not found.');
 }
-
-$title = $_POST['title'] ?? '';
-$content = $_POST['content'] ?? '';
-$target_user_id = $_POST['user_id'] ?? null; // Can be a specific ID or null for 'General'
-
-if (empty($title) || empty($content)) {
-    die(json_encode(['error' => 'Title and content are required']));
-}
-
-try {
-    $stmt = $db->prepare("INSERT INTO announcements (user_id, title, content) VALUES (?, ?, ?)");
-    $stmt->execute([$target_user_id ?: null, $title, $content]);
-    echo json_encode(['success' => 'Announcement posted successfully']);
-} catch (PDOException $e) {
-    die(json_encode(['error' => $e->getMessage()]));
-}
+$db->beginTransaction();
+$db->prepare('INSERT INTO announcements (user_id, title, content) VALUES (?, ?, ?)')->execute([$target ?: null, $title, $content]);
+auditEvent($db, $admin, 'ANNOUNCEMENT_POSTED', 'announcement', (int)$db->lastInsertId(), ['target_user_id' => $target ?: null]);
+$db->commit();
+jsonResponse(['success' => 'Announcement posted.'], 201);

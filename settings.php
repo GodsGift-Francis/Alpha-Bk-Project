@@ -1,16 +1,17 @@
 <?php
 // settings.php
-require_once __DIR__ . '/views/layout/header.php';
+require_once __DIR__ . '/includes/auth.php';
 requireLogin();
+require_once __DIR__ . '/views/layout/header.php';
 ?>
 
 <div class="card max-w-md">
     <h2 class="card-title">User Settings</h2>
-    <div id="settings-alert"></div>
+    <div id="settings-alert" aria-live="polite"></div>
     <form id="settings-form">
         <div class="form-group">
-            <label for="currency">Primary Currency</label>
-            <p class="text-secondary text-sm mb-2">Select the currency symbol used across your dashboard.</p>
+            <label for="currency">Display Currency Symbol</label>
+            <p class="text-secondary text-sm mb-2">This preference changes the display symbol only. It does not convert balances or create multi-currency accounts.</p>
             <select name="currency" id="currency" required>
                 <option value="USD" <?php echo $_SESSION['currency'] == 'USD' ? 'selected' : ''; ?>>USD ($) - US Dollar</option>
                 <option value="EUR" <?php echo $_SESSION['currency'] == 'EUR' ? 'selected' : ''; ?>>EUR (€) - Euro</option>
@@ -23,27 +24,6 @@ requireLogin();
     </form>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const settingsForm = document.getElementById('settings-form');
-    if (settingsForm) {
-        settingsForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(settingsForm);
-            const data = Object.fromEntries(formData.entries());
-            
-            const result = await API.post('api/settings.php', data);
-            const alertDiv = document.getElementById('settings-alert');
-            
-            if (result.success) {
-                alertDiv.innerHTML = `<div class="alert alert-success">${result.success}! Reloading...</div>`;
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                alertDiv.innerHTML = `<div class="alert alert-error">${result.error}</div>`;
-            }
-        });
-    }
-});
-</script>
+
 
 <?php require_once __DIR__ . '/views/layout/footer.php'; ?>
