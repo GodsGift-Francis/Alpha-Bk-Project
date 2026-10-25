@@ -1,37 +1,14 @@
-<?php
-// index.php
-require_once __DIR__ . '/views/layout/header.php';
-?>
-<div class="card text-center hero">
-    <h2 class="hero-title">Welcome to AlphaBank</h2>
-    <p class="hero-subtitle">The future of digital banking is here. Simple, secure, and built for you.</p>
-    
-    <?php if (isLoggedIn()): ?>
-        <p class="mb-8">You are logged in as <strong class="font-bold"><?php echo htmlspecialchars($_SESSION['username']); ?></strong>.</p>
-        <a href="<?php echo isAdmin() ? 'admin.php' : 'dashboard.php'; ?>" class="btn btn-primary">Go to Dashboard</a>
-    <?php else: ?>
-        <p class="mb-8 text-secondary">Manage your accounts and track every request in one place.</p>
-        <div class="hero-actions">
-            <a href="login.php" class="btn btn-primary">Login to Account</a>
-            <a href="register.php" class="btn btn-secondary">Create Free Account</a>
-        </div>
-    <?php endif; ?>
-</div>
-
-<div class="accounts-grid">
-    <div class="card">
-        <h3 class="card-title">Secure by Design</h3>
-        <p>Your security is our top priority. Protected sign-in, request validation, and administrator review support your account workflows.</p>
-    </div>
-    <div class="card">
-        <h3 class="card-title">Transfers with Oversight</h3>
-        <p>Request transfers between your accounts or to other AlphaBank users. An administrator reviews each request before funds move.</p>
-    </div>
-    <div class="card">
-        <h3 class="card-title">Clear Transaction History</h3>
-        <p>Track submitted, approved, and rejected transactions with searchable history and review details.</p>
-    </div>
-</div>
-<?php
-require_once __DIR__ . '/views/layout/footer.php';
-?>
+<?php require_once __DIR__ . '/views/layout/header.php'; ?>
+<section class="landing-hero">
+    <div class="landing-copy"><p class="eyebrow"><span class="status-dot"></span> A CLEARER WAY TO BANK</p><h1>Life moves.<br>Your money<br><em>moves with you.</em></h1><p class="landing-lead">Less complexity. More perspective. Bring your accounts, money requests and everyday decisions into one thoughtful space.</p><div class="hero-actions"><a href="<?php echo $logged_in ? ($admin_view ? 'admin.php' : 'dashboard.php') : 'register.php'; ?>" class="btn btn-primary"><?php echo $logged_in ? 'Go to your overview' : 'Open your account'; ?> <?php echo uiIcon('arrow'); ?></a><a href="#how-it-works" class="text-link">Discover AlphaBank <span aria-hidden="true">↗</span></a></div><p class="hero-footnote">Checking, Savings &amp; Business accounts. One clear view.</p></div>
+    <div class="landing-art" aria-label="Illustration of account organization, not a real balance or payment card"><div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div><div class="art-caption">A LITTLE MORE PERSPECTIVE.</div><div class="brand-slab"><div class="slab-top"><span>AlphaBank.</span><?php echo uiIcon('shield'); ?></div><div class="slab-mark">A</div><div class="slab-bottom"><span>EVERYDAY, RECONSIDERED.</span><span>↗</span></div></div><div class="art-detail"><span class="detail-icon"><?php echo uiIcon('home'); ?></span><div><strong>Everything in its place</strong><span>Accounts · activity · invoices</span></div><span class="detail-check" aria-hidden="true">✓</span></div><span class="art-label">AN ILLUSTRATION OF SIMPLER BANKING</span></div>
+</section>
+<div class="principle-strip"><span><?php echo uiIcon('home'); ?> Accounts that fit your life</span><span><?php echo uiIcon('transfer'); ?> Requests with clear oversight</span><span><?php echo uiIcon('receipt'); ?> A record of every move</span></div>
+<section class="landing-section" id="accounts"><div class="section-intro"><div><p class="eyebrow">ROOM FOR YOUR EVERYDAY</p><h2>Different plans.<br>The same clear perspective.</h2></div><p>Keep different parts of your financial life organized with an account that suits the way you use it.</p></div><div class="product-grid">
+<article class="product-card"><span class="product-number">01 / EVERYDAY</span><div class="product-symbol"><?php echo uiIcon('home'); ?></div><h3>Checking</h3><p>A home for everyday balances, deposit requests and transfers.</p><a href="<?php echo $logged_in ? 'dashboard.php' : 'register.php'; ?>">Explore your accounts <?php echo uiIcon('arrow'); ?></a></article>
+<article class="product-card product-sage"><span class="product-number">02 / LOOKING AHEAD</span><div class="product-symbol"><?php echo uiIcon('deposit'); ?></div><h3>Savings</h3><p>Give money set aside its own space, with a balance you can follow.</p><a href="<?php echo $logged_in ? 'dashboard.php' : 'register.php'; ?>">Make space for more <?php echo uiIcon('arrow'); ?></a></article>
+<article class="product-card product-sand"><span class="product-number">03 / YOUR AMBITION</span><div class="product-symbol"><?php echo uiIcon('receipt'); ?></div><h3>Business</h3><p>Organize business activity with a dedicated account and clear records.</p><a href="<?php echo $logged_in ? 'dashboard.php' : 'register.php'; ?>">Keep work organized <?php echo uiIcon('arrow'); ?></a></article></div></section>
+<section class="clarity-section" id="how-it-works"><div><p class="eyebrow">NOTHING LOST IN THE DETAILS</p><h2>A little less guessing.<br>A lot more clarity.</h2><p>Know what you have. See what you requested. Find the record whenever you need it.</p><a href="<?php echo $logged_in ? 'dashboard.php' : 'register.php'; ?>" class="btn btn-primary">Find your perspective <?php echo uiIcon('arrow'); ?></a></div><ol class="journey-list"><li><span>01</span><div><h3>Start with your account</h3><p>Create your profile. Your first account request goes to an administrator for review.</p></div></li><li><span>02</span><div><h3>Make your next move</h3><p>Submit a deposit, withdrawal or transfer request from an active account. Balances change after approval.</p></div></li><li><span>03</span><div><h3>Keep the full picture</h3><p>Receive review notifications and open transaction invoices for the current status and decision details.</p></div></li></ol></section>
+<section class="landing-section faq-section"><div><p class="eyebrow">GOOD TO KNOW</p><h2>A few things,<br>made clear.</h2></div><div><details><summary>When does my balance change?</summary><p>Submitted requests remain pending until an administrator reviews them. Approved transactions update your account balance; rejected requests remain in your history.</p></details><details><summary>Where can I find transaction status?</summary><p>Open the invoice attached to a transaction in your history. It includes its current status, submission time and any review details.</p></details><details><summary>Can I use AlphaBank on my phone?</summary><p>Yes. Your account pages adapt to phone, tablet and desktop browsers. Sign in through the same website on your preferred device.</p></details></div></section>
+<section class="closing-banner"><p class="eyebrow">YOUR MONEY. A FRESH PERSPECTIVE.</p><h2>Make room for<br>what comes next.</h2><a href="<?php echo $logged_in ? 'dashboard.php' : 'register.php'; ?>" class="btn btn-primary"><?php echo $logged_in ? 'View your accounts' : 'Get started with AlphaBank'; ?> <?php echo uiIcon('arrow'); ?></a></section>
+<?php require_once __DIR__ . '/views/layout/footer.php'; ?>
