@@ -95,6 +95,18 @@ function reviewTransaction(PDO $db, int $admin, int $id, string $action, string 
         $status = $action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
         $db->prepare("UPDATE transactions SET status = ?, reviewed_by = ?, reviewed_at = UTC_TIMESTAMP(), review_reason = ? WHERE id = ? AND status = 'PENDING'")
             ->execute([$status, $admin, $reason ?: null, $id]);
+        $owner = $db->prepare('SELECT user_id FROM accounts WHERE id = ?');
+        $owner->execute([$tx['account_id']]);
+        $db->prepare('INSERT INTO announcements (user_id, title, content) VALUES (?, ?, ?)')->execute([
+            $owner->fetchColumn(), 'Transaction ' . strtolower($status),
+            'TX-' . $id . ' has been ' . strtolower($status) . '. Open its invoice in your transaction history for details.'
+        ]);
+        if ($action === 'APPROVE' && $tx['transaction_type'] === 'TRANSFER_OUT') {
+            $owner->execute([$tx['related_account_id']]);
+            $db->prepare('INSERT INTO announcements (user_id, title, content) VALUES (?, ?, ?)')->execute([
+                $owner->fetchColumn(), 'Transfer received', 'An incoming transfer has been posted. Open your transaction history to view its invoice.'
+            ]);
+        }
         auditEvent($db, $admin, $status, 'transaction', $id, ['previous_status' => 'PENDING', 'reason' => $reason, 'amount' => $amount]);
         $db->commit();
     } catch (Throwable $error) {
