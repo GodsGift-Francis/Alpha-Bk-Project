@@ -102,3 +102,23 @@ or public production deployment.
 See [isolated preview setup](preview/README.md) for an access-protected synthetic
 test instance. A remote workspace needs an approved HTTPS gateway/port forward;
 opening desktop localhost does not reach its cloud server.
+
+## Unlisted admin entry and transaction invoices
+
+Open `/admin` (or `/admin/`) directly to reach administrator sign-in. Customer
+pages contain no admin login link. This is an unlisted URL, not a network-private
+endpoint: administrator authentication and role checks still apply. For an
+owner-only network boundary in production, configure a VPN or hosting access
+policy when the hosting environment is chosen.
+
+Customer account cards omit the APPROVED badge once active. Review decisions
+create private notifications atomically with the account/transaction decision.
+Existing decisions are not replayed into notifications. History rows show amounts
+and descriptions without status badges; each record links to `invoice.php?id=...`.
+Invoices show current status, UTC dates and review details, are readable only by
+the owning customer or an administrator, and support printing/saving as PDF.
+The invoice is a live transaction record rather than an immutable tax document.
+
+Mobile history uses stacked labeled cards; wider layouts retain tables. Layouts
+use flexible grids, bounded content width, touch-sized controls and a large-screen
+scale. Admin operational review queues retain their status labels for review.
