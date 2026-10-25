@@ -9,7 +9,9 @@ if (isLoggedIn()) {
 require_once __DIR__ . '/views/layout/header.php';
 ?>
 <div class="card max-w-sm">
+    <p class="eyebrow">WELCOME BACK</p>
     <h2 class="card-title text-center">Customer sign in</h2>
+    <p class="auth-description">Sign in to see your accounts and pick up where you left off.</p>
     <div id="login-alert" aria-live="polite"></div>
     <form id="login-form">
         <div class="form-group">
