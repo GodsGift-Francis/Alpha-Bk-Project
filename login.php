@@ -22,7 +22,6 @@ require_once __DIR__ . '/views/layout/header.php';
         </div>
         <button type="submit" class="btn btn-primary btn-block">Sign In</button>
     </form>
-    <p class="text-center mt-4"><a href="admin-login.php">Administrator sign in</a></p>
     <div class="text-center mt-4">
         <p style="color: var(--text-secondary); font-size: 0.9rem;">Don't have an account? <a href="register.php" style="color: var(--secondary-color); font-weight: 600; text-decoration: none;">Register here</a></p>
     </div>
