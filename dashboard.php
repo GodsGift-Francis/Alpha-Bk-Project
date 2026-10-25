@@ -9,7 +9,7 @@ $firstName = $nameParts[0] ?? '';
 ?>
 <div class="dashboard-header">
     <div>
-        <h2 class="hero-title" style="font-size: 1.875rem;">Financial Overview</h2>
+        <p class="eyebrow">YOUR EVERYDAY, AT A GLANCE</p><h1 class="hero-title">Financial Overview<span class="heading-dot">.</span></h1>
         <p class="text-secondary">Welcome back<?php if ($firstName !== ''): ?>, <strong class="font-bold"><?php echo htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong><?php endif; ?></p>
     </div>
     <div style="display: flex; gap: 0.75rem;">
@@ -18,6 +18,8 @@ $firstName = $nameParts[0] ?? '';
     </div>
 </div>
 
+<div class="quick-actions" aria-label="Banking shortcuts"><a href="deposit.php"><span class="action-icon"><?php echo uiIcon('deposit'); ?></span><span><strong>Make a deposit</strong><small>Add a deposit request</small></span><span aria-hidden="true">↗</span></a><a href="transfer.php"><span class="action-icon"><?php echo uiIcon('transfer'); ?></span><span><strong>Move money</strong><small>Transfer between accounts</small></span><span aria-hidden="true">↗</span></a><a href="withdraw.php"><span class="action-icon"><?php echo uiIcon('withdraw'); ?></span><span><strong>Withdraw funds</strong><small>Request a withdrawal</small></span><span aria-hidden="true">↗</span></a></div>
+<div class="section-heading account-section-heading"><h2>Your accounts</h2><span class="text-secondary text-sm">A place for every part of your life</span></div>
 <div id="dashboard-content">
     <div class="card"><p>Loading your accounts...</p></div>
 </div>
