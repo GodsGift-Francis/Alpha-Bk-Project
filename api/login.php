@@ -20,7 +20,9 @@ $stmt->execute([$username]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 // Fixed-cost verification also applies to unknown users.
 $valid = password_verify($password, $user['password_hash'] ?? '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.');
-if (!$user || !$valid) jsonResponse(['error' => 'Invalid username or password.'], 401);
+$adminPortal = defined('ALPHABANK_ADMIN_LOGIN') && ALPHABANK_ADMIN_LOGIN;
+if (!$user || !$valid || ($adminPortal && (int)$user['is_admin'] !== 1)) jsonResponse(['error' => 'Invalid username or password.'], 401);
+if (!$adminPortal && (int)$user['is_admin'] === 1) jsonResponse(['error' => 'Please use the administrator sign-in page.'], 403);
 $db->prepare('DELETE FROM login_limits WHERE bucket = ?')->execute([$buckets[0]]);
 loginUser($user['id'], $user['username'], $user['is_admin'], $user['currency']);
 jsonResponse(['success' => 'Login successful', 'is_admin' => (int)$user['is_admin']]);
