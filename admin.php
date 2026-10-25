@@ -80,15 +80,15 @@ require_once __DIR__ . '/views/layout/header.php';
 </tr>
 </thead>
 <tbody>
-    <?php foreach ($pending_tx as $tx): $summary = 'TX-' . $tx['id'] . ' · ' . $tx['transaction_type'] . ' · ' . getCurrencySymbol() . $tx['amount'] . ' · ' . $tx['account_number'] . ($tx['recipient_number'] ? ' → ' . $tx['recipient_number'] : ''); ?>
+    <?php foreach ($pending_tx as $tx): $summary = 'TX-' . $tx['id'] . ' Â· ' . $tx['transaction_type'] . ' Â· ' . getCurrencySymbol() . $tx['amount'] . ' Â· ' . $tx['account_number'] . ($tx['recipient_number'] ? ' â†’ ' . $tx['recipient_number'] : ''); ?>
     <tr>
 <td>
 <strong>
-<?php echo e('TX-' . $tx['id'] . ' · ' . $tx['username']); ?>
+<?php echo e('TX-' . $tx['id'] . ' Â· ' . $tx['username']); ?>
 </strong>
 <br>
 <span class="text-sm text-secondary">
-<?php echo e($tx['transaction_type'] . ' · ' . $tx['timestamp']); ?>
+<?php echo e($tx['transaction_type'] . ' Â· ' . $tx['timestamp']); ?>
 </span>
 <br>
 <?php echo e($tx['description']); ?>
@@ -154,7 +154,7 @@ require_once __DIR__ . '/views/layout/header.php';
 <?php echo e($acc['username']); ?>
 </td>
 <td>
-<?php echo e($acc['account_number'] . ' · ' . $acc['account_type']); ?>
+<?php echo e($acc['account_number'] . ' Â· ' . $acc['account_type']); ?>
 </td>
 <td>
 <?php echo e($acc['created_at']); ?>
@@ -162,7 +162,7 @@ require_once __DIR__ . '/views/layout/header.php';
 <td>
 <div class="row-actions">
 <?php foreach (['APPROVE' => 'Approve', 'REJECT' => 'Reject'] as $action => $label): ?>
-<button type="button" class="btn btn-small <?php echo $action === 'APPROVE' ? 'btn-primary' : 'btn-secondary'; ?>" data-review-kind="account" data-id="<?php echo e($acc['id']); ?>" data-action="<?php echo $action; ?>" data-summary="<?php echo e($acc['username'] . ' · ' . $acc['account_type'] . ' · ' . $acc['account_number']); ?>">
+<button type="button" class="btn btn-small <?php echo $action === 'APPROVE' ? 'btn-primary' : 'btn-secondary'; ?>" data-review-kind="account" data-id="<?php echo e($acc['id']); ?>" data-action="<?php echo $action; ?>" data-summary="<?php echo e($acc['username'] . ' Â· ' . $acc['account_type'] . ' Â· ' . $acc['account_number']); ?>">
 <?php echo $label; ?>
 </button>
 <?php endforeach; ?>
@@ -255,7 +255,7 @@ require_once __DIR__ . '/views/layout/header.php';
 <tr>
 <td>
 <strong>
-<?php echo e('TX-' . $tx['id']); ?>
+<a href="invoice.php?id=<?php echo (int)$tx['id']; ?>"><?php echo e('TX-' . $tx['id']); ?></a>
 </strong>
 <br>
 <?php echo e($tx['timestamp']); ?>
