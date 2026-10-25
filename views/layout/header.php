@@ -22,7 +22,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <header>
         <div class="container">
             <h1 class="logo-text"><img src="logo.jpg" alt="AlphaBank Logo" class="logo-img">AlphaBank</h1>
+            <?php if ($logged_in || $current_page !== 'admin-login.php'): ?>
             <button class="nav-toggle" type="button" aria-controls="primary-nav" aria-expanded="false">Menu</button>
+            <?php endif; ?>
             <nav id="primary-nav" aria-label="Main navigation">
                 <?php if ($logged_in): ?>
                     <?php if (isAdmin()): ?>
@@ -41,7 +43,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     
                     <?php if (!isAdmin()): ?>
                     <div class="notification-wrapper" id="notification-trigger">
-                        <button type="button" class="notification-bell-btn" aria-label="Notifications" aria-expanded="false" aria-controls="notification-dropdown">🔔</button>
+                        <button type="button" class="notification-bell-btn" aria-label="Notifications" aria-expanded="false" aria-controls="notification-dropdown">ðŸ””</button>
                         <span class="notification-badge" id="nav-badge">0</span>
                         <div class="notification-dropdown" id="notification-dropdown">
                             <div class="notification-header">
@@ -59,7 +61,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <input type="hidden" name="csrf_token" value="<?php echo getCsrfToken(); ?>">
                         <button type="submit" class="btn-logout">Logout</button>
                     </form>
-                <?php else: ?>
+                <?php elseif ($current_page !== 'admin-login.php'): ?>
                     <a href="login.php" class="<?php echo $current_page == 'login.php' ? 'active' : ''; ?>">Login</a>
                     <a href="register.php" class="<?php echo $current_page == 'register.php' ? 'active' : ''; ?>">Register</a>
                 <?php endif; ?>
