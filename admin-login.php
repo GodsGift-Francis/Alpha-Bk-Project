@@ -22,6 +22,5 @@ require_once __DIR__ . '/views/layout/header.php';
         </div>
         <button type="submit" class="btn btn-primary btn-block">Sign in to administration</button>
     </form>
-    <p class="text-center mt-4"><a href="login.php">Customer sign in</a></p>
 </div>
 <?php require_once __DIR__ . '/views/layout/footer.php'; ?>
