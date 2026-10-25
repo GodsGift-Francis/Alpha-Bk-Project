@@ -6,9 +6,10 @@ if (isLoggedIn()) {
 }
 require_once __DIR__ . '/views/layout/header.php';
 ?>
-<div class="card max-w-sm" style="border-top: 4px solid var(--warning-color);">
-    <p class="form-note text-center">ALPHABANK ADMINISTRATION</p>
+<div class="card max-w-sm" >
+    <p class="eyebrow">AUTHORIZED ACCESS</p>
     <h2 class="card-title text-center">Administrator sign in</h2>
+    <p class="auth-description">Sign in to your operations workspace.</p>
     <p class="form-note">Manage account reviews, transaction approvals and bank operations. Access is restricted to authorized administrators.</p>
     <div id="admin-login-alert" aria-live="polite"></div>
     <form id="admin-login-form">
