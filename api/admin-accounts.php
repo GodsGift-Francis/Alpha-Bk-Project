@@ -14,6 +14,13 @@ $stmt->execute([$id]);
 if ($stmt->fetchColumn() !== 'PENDING') throw new DomainException('Account request not found or already processed.');
 $status = $action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
 $db->prepare('UPDATE accounts SET status = ?, reviewed_by = ?, reviewed_at = UTC_TIMESTAMP(), review_reason = ? WHERE id = ?')->execute([$status, $admin, $reason ?: null, $id]);
+$notice = $db->prepare('SELECT user_id, account_number FROM accounts WHERE id = ?');
+$notice->execute([$id]);
+$owner = $notice->fetch();
+$db->prepare('INSERT INTO announcements (user_id, title, content) VALUES (?, ?, ?)')->execute([
+    $owner['user_id'], 'Account ' . strtolower($status),
+    'Your account ending ' . substr($owner['account_number'], -4) . ' has been ' . strtolower($status) . '.' . ($reason ? ' Reason: ' . $reason : '')
+]);
 auditEvent($db, $admin, $status, 'account', $id, ['reason' => $reason]);
 $db->commit();
 jsonResponse(['success' => 'Account request ' . strtolower($status) . '.']);
