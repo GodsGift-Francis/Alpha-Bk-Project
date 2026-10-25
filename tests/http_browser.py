@@ -53,9 +53,9 @@ class Client:
         if csrf: values['csrf_token'] = self.token
         status, body, _ = self.send(path, values)
         return status, json.loads(body)
-    def login(self, username, password):
+    def login(self, username, password, administrator=False):
         self.csrf()
-        status, data = self.post('/api/login.php', {'username': username, 'password': password})
+        status, data = self.post('/api/admin-login.php' if administrator else '/api/login.php', {'username': username, 'password': password})
         assert status == 200, data
         _, body, _ = self.get('/admin.php' if data['is_admin'] else '/dashboard.php')
         self.token = re.search(r'name="csrf-token" content="([^"]+)"', body)[1]
@@ -90,8 +90,11 @@ with tempfile.TemporaryDirectory(prefix='alphabank-tests-') as temporary:
         guest.csrf()
         check(guest.post('/api/register.php', {}, csrf=False)[0] == 403, 'registration requires CSRF')
         check(guest.post('/api/register.php', {'username': 'invalid spaces', 'email': 'bad', 'full_name': 'Test', 'password': 'short'})[0] == 422, 'registration validates inputs')
+        check(guest.post('/api/admin-login.php', {'username': fixture['sender'], 'password': fixture['password']})[0] == 401, 'customer denied administrator sign in')
+        check(guest.post('/api/login.php', {'username': fixture['admin'], 'password': fixture['password']})[0] == 403, 'administrator must use administrator sign in')
+        check(guest.post('/api/admin-login.php', {}, csrf=False)[0] == 403, 'administrator sign in requires CSRF')
         sender.login(fixture['sender'], fixture['password'])
-        admin.login(fixture['admin'], fixture['password'])
+        admin.login(fixture['admin'], fixture['password'], administrator=True)
         recipient.login(fixture['recipient'], fixture['password'])
         check(sender.post('/api/admin-tx.php', {'tx_id': 1, 'action': 'APPROVE'})[0] == 403, 'user cannot approve transactions')
         for endpoint, data in [('/api/admin-tx.php', {'tx_id': 1, 'action': 'APPROVE'}), ('/api/admin-accounts.php', {'account_id': 3, 'action': 'APPROVE'}), ('/api/post-announcement.php', {'title': 'Test', 'content': 'Body'})]:
@@ -181,7 +184,7 @@ with tempfile.TemporaryDirectory(prefix='alphabank-tests-') as temporary:
                 check(not page.locator('#primary-nav').is_visible(), 'mobile menu closes with Escape')
                 admin_context = browser.new_context(viewport={'width': 1280, 'height': 900})
                 admin_page = admin_context.new_page(); admin_page.on('pageerror', lambda error: errors.append(str(error)))
-                admin_page.goto(base + '/login.php'); admin_page.fill('#username', fixture['admin']); admin_page.fill('#password', fixture['password']); admin_page.click('button[type=submit]'); admin_page.wait_for_url('**/admin.php')
+                admin_page.goto(base + '/admin-login.php'); admin_page.fill('#admin-username', fixture['admin']); admin_page.fill('#admin-password', fixture['password']); admin_page.click('button[type=submit]'); admin_page.wait_for_url('**/admin.php')
                 if previews: admin_page.screenshot(path=str(Path(previews) / 'admin-desktop.png'), full_page=True)
                 check(admin_page.locator('#clients img').count() == 0 and admin_page.evaluate('window.injected !== true'), 'malicious client name is rendered as text')
                 admin_page.locator('[data-edit-client="2"]').click()
