@@ -42,10 +42,9 @@ require_once __DIR__ . '/views/layout/header.php';
     </div>
 </dialog>
 
-<div class="section-heading"><h2 class="card-title">Transaction History</h2><span class="text-secondary text-sm">Amounts settle after approval</span></div>
+<div class="section-heading"><h2 class="card-title">Transaction History</h2><span class="text-secondary text-sm">Open an invoice for status and review details</span></div>
 <form id="history-filters" class="filter-bar" role="search" aria-label="Filter transaction history">
     <div><label for="history-query">Search</label><input type="search" id="history-query" name="q" maxlength="100" placeholder="Reference, account or description"></div>
-    <div><label for="history-status">Status</label><select id="history-status" name="status"><option value="">All statuses</option><option>PENDING</option><option>APPROVED</option><option>REJECTED</option></select></div>
     <div><label for="history-type">Type</label><select id="history-type" name="type"><option value="">All types</option><option value="DEPOSIT">Deposit</option><option value="WITHDRAWAL">Withdrawal</option><option value="TRANSFER_OUT">Transfer out</option><option value="TRANSFER_IN">Transfer in</option></select></div>
     <div><label for="history-from">From</label><input type="date" id="history-from" name="from"></div>
     <div><label for="history-to">To</label><input type="date" id="history-to" name="to"></div>
