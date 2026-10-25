@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const [id, endpoint, destination] of [
         ['register', 'api/register.php', () => 'login.php'],
         ['login', 'api/login.php', result => result.is_admin ? 'admin.php' : 'dashboard.php'],
+        ['admin-login', 'api/admin-login.php', () => 'admin.php'],
         ['settings', 'api/settings.php', () => null]
     ]) {
         const form = document.getElementById(`${id}-form`);
