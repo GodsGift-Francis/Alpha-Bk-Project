@@ -4,11 +4,13 @@ require_once __DIR__ . '/includes/auth.php';
 requireLogin();
 if (isAdmin()) { header('Location: admin.php'); exit; }
 require_once __DIR__ . '/views/layout/header.php';
+$nameParts = preg_split('/\s+/u', $_SESSION['full_name'] ?? '', -1, PREG_SPLIT_NO_EMPTY);
+$firstName = $nameParts[0] ?? '';
 ?>
 <div class="dashboard-header">
     <div>
         <h2 class="hero-title" style="font-size: 1.875rem;">Financial Overview</h2>
-        <p class="text-secondary">Welcome back, <strong class="font-bold"><?php echo htmlspecialchars($_SESSION['username']); ?></strong></p>
+        <p class="text-secondary">Welcome back<?php if ($firstName !== ''): ?>, <strong class="font-bold"><?php echo htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong><?php endif; ?></p>
     </div>
     <div style="display: flex; gap: 0.75rem;">
         <button onclick="showCreateAccount()" class="btn btn-secondary">Open New Account</button>
