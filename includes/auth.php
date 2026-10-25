@@ -64,7 +64,10 @@ function isAdmin() {
 }
 
 function requireAdmin() {
-    requireLogin();
+    if (!isLoggedIn()) {
+        header('Location: admin-login.php');
+        exit();
+    }
     if (!isAdmin()) {
         header('HTTP/1.1 403 Forbidden');
         die("Unauthorized access.");
