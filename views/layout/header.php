@@ -35,7 +35,7 @@ $titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview',
     <title><?php echo uiText($titles[$current_page] ?? ($current_page === 'index.php' ? 'Banking, thoughtfully simple' : 'Welcome')); ?> | AlphaBank</title>
     <meta name="csrf-token" content="<?php echo getCsrfToken(); ?>">
     <script>const CURRENCY_SYMBOL = <?php echo json_encode($logged_in ? getCurrencySymbol() : '$'); ?>;</script>
-    <link rel="icon" type="image/jpeg" href="logo.jpg">
+    <link rel="icon" type="image/svg+xml" sizes="any" href="assets/favicon.svg?v=2">
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/design.css">
 </head>
