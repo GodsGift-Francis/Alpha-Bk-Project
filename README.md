@@ -122,3 +122,15 @@ The invoice is a live transaction record rather than an immutable tax document.
 Mobile history uses stacked labeled cards; wider layouts retain tables. Layouts
 use flexible grids, bounded content width, touch-sized controls and a large-screen
 scale. Admin operational review queues retain their status labels for review.
+
+
+## Interface design
+
+The Perspective design system covers the public homepage, sign-in/registration,
+customer banking and administrator operations. Shared presentation lives in
+`views/layout/` and `assets/css/design.css`; the existing banking APIs, database
+schema and financial rules are unchanged. Native SVG icons and CSS artwork avoid
+an image asset dependency. Web fonts fall back to system sans-serif fonts.
+
+See [design research](docs/DESIGN_RESEARCH.md) for the sources, original design
+interpretation and the mapping from research to implemented screens.
