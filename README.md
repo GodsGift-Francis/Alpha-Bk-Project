@@ -32,6 +32,28 @@ See [deployment notes](docs/DEPLOYMENT.md).
 
 ## Current behavior
 
+### Administrator access on local and hosted installations
+
+Customers sign in at `login.php`; administrators sign in at `admin-login.php`.
+Each endpoint enforces the account role on the server, with the same CSRF checks,
+session protections and shared rate limits. Visiting `admin.php` while signed out
+opens the administrator sign-in page.
+
+For your permanent administrator, configure the target database and run migrations,
+then set `ALPHABANK_ADMIN_PASSWORD` in a trusted server console (16–72 bytes) and run:
+
+```sh
+php scripts/provision-admin.php YOUR_USERNAME you@example.com "Your Full Name"
+```
+
+Remove the password environment variable after provisioning. No default admin or
+password is shipped. The command only creates a new administrator; it refuses
+duplicate usernames/emails and never changes an existing user's privileges.
+Run it separately against the local and hosted databases to use the same chosen
+identity in both installations. Accounts persist in those databases, not in Git.
+Deploying this repository does not provision a hosted administrator automatically.
+Use HTTPS and `APP_SESSION_SECURE=1` on the hosted installation.
+
 - Checking, Savings and Business account requests; manual approval/rejection.
 - Exact decimal request amounts; row-locked financial approval and funds checks.
 - Idempotent transaction retries using a client-generated request key.
