@@ -28,7 +28,7 @@ function isLoggedIn() {
         }
         try {
             if (!$db) $db = require __DIR__ . '/../config/database.php';
-            $stmt = $db->prepare("SELECT is_admin, currency, username FROM users WHERE id = ? AND status = 'ACTIVE'");
+            $stmt = $db->prepare("SELECT is_admin, currency, username, full_name FROM users WHERE id = ? AND status = 'ACTIVE'");
             $stmt->execute([$_SESSION['user_id']]);
             $user = $stmt->fetch();
             
@@ -36,6 +36,7 @@ function isLoggedIn() {
                 $_SESSION['is_admin'] = $user['is_admin'];
                 $_SESSION['currency'] = $user['currency'];
                 $_SESSION['username'] = $user['username'];
+                $_SESSION['full_name'] = $user['full_name'];
                 $_SESSION['last_activity'] = time();
                 return true;
             } else {
