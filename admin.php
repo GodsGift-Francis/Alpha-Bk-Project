@@ -33,11 +33,12 @@ require_once __DIR__ . '/views/layout/header.php';
 <div class="dashboard-header">
 <div>
 <p class="eyebrow">Operations</p>
-<h2 class="hero-title">Admin Command Center</h2>
+<h1 class="hero-title">Admin Command Center<span class="heading-dot">.</span></h1>
 <p class="text-secondary">Review requests, manage clients, and trace decisions.</p>
 </div>
 <a href="#pending-transactions" class="btn btn-primary">Review pending requests</a>
 </div>
+<nav class="operations-tabs" aria-label="Operations sections"><a href="#pending-transactions">Transaction reviews</a><a href="#pending-accounts">Account requests</a><a href="#clients">Client directory</a><a href="#transaction-audit">Records &amp; audit</a></nav>
 <div id="admin-alert" aria-live="polite">
 </div>
 <div class="accounts-grid summary-grid">
@@ -80,15 +81,15 @@ require_once __DIR__ . '/views/layout/header.php';
 </tr>
 </thead>
 <tbody>
-    <?php foreach ($pending_tx as $tx): $summary = 'TX-' . $tx['id'] . ' Â· ' . $tx['transaction_type'] . ' Â· ' . getCurrencySymbol() . $tx['amount'] . ' Â· ' . $tx['account_number'] . ($tx['recipient_number'] ? ' â†’ ' . $tx['recipient_number'] : ''); ?>
+    <?php foreach ($pending_tx as $tx): $summary = 'TX-' . $tx['id'] . ' · ' . $tx['transaction_type'] . ' · ' . getCurrencySymbol() . $tx['amount'] . ' · ' . $tx['account_number'] . ($tx['recipient_number'] ? ' → ' . $tx['recipient_number'] : ''); ?>
     <tr>
 <td>
 <strong>
-<?php echo e('TX-' . $tx['id'] . ' Â· ' . $tx['username']); ?>
+<?php echo e('TX-' . $tx['id'] . ' · ' . $tx['username']); ?>
 </strong>
 <br>
 <span class="text-sm text-secondary">
-<?php echo e($tx['transaction_type'] . ' Â· ' . $tx['timestamp']); ?>
+<?php echo e($tx['transaction_type'] . ' · ' . $tx['timestamp']); ?>
 </span>
 <br>
 <?php echo e($tx['description']); ?>
@@ -154,7 +155,7 @@ require_once __DIR__ . '/views/layout/header.php';
 <?php echo e($acc['username']); ?>
 </td>
 <td>
-<?php echo e($acc['account_number'] . ' Â· ' . $acc['account_type']); ?>
+<?php echo e($acc['account_number'] . ' · ' . $acc['account_type']); ?>
 </td>
 <td>
 <?php echo e($acc['created_at']); ?>
@@ -162,7 +163,7 @@ require_once __DIR__ . '/views/layout/header.php';
 <td>
 <div class="row-actions">
 <?php foreach (['APPROVE' => 'Approve', 'REJECT' => 'Reject'] as $action => $label): ?>
-<button type="button" class="btn btn-small <?php echo $action === 'APPROVE' ? 'btn-primary' : 'btn-secondary'; ?>" data-review-kind="account" data-id="<?php echo e($acc['id']); ?>" data-action="<?php echo $action; ?>" data-summary="<?php echo e($acc['username'] . ' Â· ' . $acc['account_type'] . ' Â· ' . $acc['account_number']); ?>">
+<button type="button" class="btn btn-small <?php echo $action === 'APPROVE' ? 'btn-primary' : 'btn-secondary'; ?>" data-review-kind="account" data-id="<?php echo e($acc['id']); ?>" data-action="<?php echo $action; ?>" data-summary="<?php echo e($acc['username'] . ' · ' . $acc['account_type'] . ' · ' . $acc['account_number']); ?>">
 <?php echo $label; ?>
 </button>
 <?php endforeach; ?>
