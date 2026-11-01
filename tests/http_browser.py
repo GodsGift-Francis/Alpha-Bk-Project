@@ -123,6 +123,8 @@ with tempfile.TemporaryDirectory(prefix='alphabank-tests-') as temporary:
         check(sender.get('/api/history.php?from=2026-99-99')[0] == 422, 'invalid history date rejected')
         check('APPROVED' in sender.get('/invoice.php?id=1')[1], 'approved transaction invoice available to owner')
         check('REJECTED' in sender.get('/invoice.php?id=2')[1], 'rejection and reason retained on invoice')
+        legacy_invoice = sender.get('/invoice.php?id=4')[1]
+        check('Review time unavailable' in legacy_invoice and 'Not yet reviewed' not in legacy_invoice, 'legacy reviewed invoice does not claim it is awaiting review')
         check(recipient.get('/invoice.php?id=1')[0] == 404, 'other customers cannot read transaction invoice')
         check('APPROVED' in admin.get('/invoice.php?id=1')[1], 'admin can inspect transaction invoice')
         check('PENDING' in sender.get('/invoice.php?id=' + str(result['id']))[1], 'pending transaction has invoice before posting')
