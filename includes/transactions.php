@@ -15,10 +15,10 @@ function requestTransaction(PDO $db, int $user, string $action, string $number, 
     $db->beginTransaction();
     try {
         // Serializes same-source submissions. The unique key also covers cross-account retries.
-        $stmt = $db->prepare('SELECT * FROM accounts WHERE account_number = ? AND user_id = ? FOR UPDATE');
+        $stmt = $db->prepare("SELECT a.* FROM accounts a JOIN users u ON u.id = a.user_id WHERE a.account_number = ? AND a.user_id = ? AND u.status = 'ACTIVE' FOR UPDATE");
         $stmt->execute([$number, $user]);
         $account = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$account) throw new DomainException('Source account not found.');
+        if (!$account) throw new DomainException('Source account not found or unavailable.');
         $existing = $db->prepare('SELECT id, status, request_hash FROM transactions WHERE requested_by = ? AND request_key = ?');
         $existing->execute([$user, $key]);
         if ($tx = $existing->fetch(PDO::FETCH_ASSOC)) {
@@ -31,7 +31,7 @@ function requestTransaction(PDO $db, int $user, string $action, string $number, 
         $related = null;
         if ($action === 'TRANSFER') {
             if ($recipient === '' || $recipient === $number) throw new InvalidArgumentException('Choose a different recipient account.');
-            $stmt = $db->prepare("SELECT id FROM accounts WHERE account_number = ? AND status = 'APPROVED'");
+            $stmt = $db->prepare("SELECT a.id FROM accounts a JOIN users u ON u.id = a.user_id WHERE a.account_number = ? AND a.status = 'APPROVED' AND u.status = 'ACTIVE'");
             $stmt->execute([$recipient]);
             $related = $stmt->fetchColumn();
             if (!$related) throw new DomainException('Recipient account not found or not active.');
@@ -69,10 +69,10 @@ function reviewTransaction(PDO $db, int $admin, int $id, string $action, string 
             $accounts = [];
             // Explicit ascending lock acquisition avoids opposite-direction transfer deadlocks.
             foreach ($ids as $accountId) {
-                $stmt = $db->prepare('SELECT * FROM accounts WHERE id = ? FOR UPDATE');
+                $stmt = $db->prepare("SELECT a.* FROM accounts a JOIN users u ON u.id = a.user_id WHERE a.id = ? AND u.status = 'ACTIVE' FOR UPDATE");
                 $stmt->execute([$accountId]);
                 $account = $stmt->fetch(PDO::FETCH_ASSOC);
-                if (!$account || $account['status'] !== 'APPROVED') throw new DomainException('Source and recipient accounts must be active at approval.');
+                if (!$account || $account['status'] !== 'APPROVED') throw new DomainException('Source and recipient accounts and their owners must be active at approval.');
                 $accounts[$accountId] = $account;
             }
             $source = $accounts[$tx['account_id']];
