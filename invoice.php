@@ -27,7 +27,7 @@ require __DIR__ . '/views/layout/header.php';
         <dt>Transaction type</dt><dd><?php echo invoiceEscape(str_replace('_', ' ', $tx['transaction_type'])); ?></dd>
         <dt>Current status</dt><dd><span class="badge"><?php echo invoiceEscape($tx['status']); ?></span></dd>
         <dt>Submitted (UTC)</dt><dd><?php echo invoiceEscape($tx['timestamp']); ?></dd>
-        <dt>Reviewed (UTC)</dt><dd><?php echo invoiceEscape($tx['reviewed_at'] ?: 'Not yet reviewed'); ?></dd>
+        <dt>Reviewed (UTC)</dt><dd><?php echo invoiceEscape($tx['reviewed_at'] ?: ($tx['status'] === 'PENDING' ? 'Not yet reviewed' : 'Review time unavailable')); ?></dd>
         <dt>Description</dt><dd><?php echo invoiceEscape($tx['description'] ?: '—'); ?></dd>
         <?php if ($tx['review_reason']): ?><dt>Review reason</dt><dd><?php echo invoiceEscape($tx['review_reason']); ?></dd><?php endif; ?>
     </dl>
