@@ -55,11 +55,11 @@ $titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview',
             <?php if (!$admin_view): ?>
             <div class="notification-wrapper" id="notification-trigger">
                 <button type="button" class="notification-bell-btn" aria-label="Notifications" aria-expanded="false" aria-controls="notification-dropdown"><?php echo uiIcon('bell'); ?><span>Notifications</span></button><span class="notification-badge" id="nav-badge">0</span>
-                <div class="notification-dropdown" id="notification-dropdown"><div class="notification-header">Notifications <button type="button" id="mark-read" class="text-button">Mark all as read</button></div><div class="notification-list" id="notification-list"><div class="empty-notifications">Loading notificationsâ€¦</div></div></div>
+                <div class="notification-dropdown" id="notification-dropdown"><div class="notification-header">Notifications <button type="button" id="mark-read" class="text-button">Mark all as read</button></div><div class="notification-list" id="notification-list"><div class="empty-notifications">Loading notifications...</div></div></div>
             </div>
             <?php endif; ?>
             <div class="sidebar-note"><?php echo uiIcon('shield'); ?><p><?php echo $admin_view ? 'Every decision.<br>A clear audit trail.' : 'Your money.<br>A clearer perspective.'; ?></p></div>
-            <form action="logout.php" method="post" class="logout-form"><input type="hidden" name="csrf_token" value="<?php echo getCsrfToken(); ?>"><button type="submit" class="btn-logout">Sign out <span aria-hidden="true">â†—</span></button></form>
+            <form action="logout.php" method="post" class="logout-form"><input type="hidden" name="csrf_token" value="<?php echo getCsrfToken(); ?>"><button type="submit" class="btn-logout">Sign out <span aria-hidden="true">&#8599;</span></button></form>
         <?php elseif ($current_page !== 'admin-login.php'): ?>
             <a href="index.php#accounts">Our accounts</a><a href="index.php#how-it-works">How it works</a><a href="login.php" class="<?php echo $current_page === 'login.php' ? 'active' : ''; ?>">Sign in</a><a href="register.php" class="nav-cta">Open an account <?php echo uiIcon('arrow'); ?></a>
         <?php endif; ?>
