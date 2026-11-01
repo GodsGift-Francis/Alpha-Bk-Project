@@ -28,3 +28,11 @@ input[type],select,textarea{background:#fafbf8;border-radius:9px;border-color:#d
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
 
 .art-caption{left:0;right:0;text-align:center;top:40px;padding-inline:70px}
+
+/* Password visibility controls retain native labels and autocomplete behavior. */
+.password-control { position: relative; }
+.password-control input { padding-right: 58px; }
+.password-toggle { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); display: inline-grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 10px; border: 0; border-radius: 7px; background: transparent; color: #46644e; cursor: pointer; }
+.password-toggle:hover { background: #eaf0e3; }
+.password-toggle svg { width: 22px; height: 22px; }
+.password-toggle[aria-pressed="true"] { background: #e5edda; }
