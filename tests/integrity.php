@@ -92,6 +92,24 @@ try {
     check(balance($db, 1) === '9999999999999.98', 'SQL debit preserves cents at maximum balance');
     $tiny = request($db, 'DEPOSIT', '0.01'); reviewTransaction($db, 1, $tiny['id'], 'APPROVE');
     check(balance($db, 1) === '9999999999999.99', 'SQL credit preserves cents at maximum balance');
+    $db->exec("UPDATE accounts SET balance = 100.00 WHERE id = 1");
+    $db->exec("UPDATE accounts SET balance = 0.00 WHERE id = 2");
+    $db->exec("UPDATE users SET status = 'SUSPENDED' WHERE id = 3");
+    refused(fn() => request($db, 'TRANSFER', '1.00', 'ACC-1000000002'), 'suspended recipient cannot receive new transfer requests');
+    $db->exec("UPDATE users SET status = 'ACTIVE' WHERE id = 3");
+    $suspendedTransfer = request($db, 'TRANSFER', '1.00', 'ACC-1000000002');
+    $db->exec("UPDATE users SET status = 'SUSPENDED' WHERE id = 3");
+    refused(fn() => reviewTransaction($db, 1, $suspendedTransfer['id'], 'APPROVE'), 'recipient suspension rechecked at posting');
+    check(balance($db, 1) === '100.00' && balance($db, 2) === '0.00', 'suspended recipient leaves both balances unchanged');
+    $db->exec("UPDATE users SET status = 'ACTIVE' WHERE id = 3");
+    $suspendedDeposit = request($db, 'DEPOSIT', '1.00');
+    $db->exec("UPDATE users SET status = 'SUSPENDED' WHERE id = 2");
+    refused(fn() => request($db, 'DEPOSIT', '1.00'), 'suspended owner cannot submit new requests');
+    refused(fn() => reviewTransaction($db, 1, $suspendedDeposit['id'], 'APPROVE'), 'source owner suspension rechecked at posting');
+    check(balance($db, 1) === '100.00', 'suspended source cannot receive a posted deposit');
+    $db->exec("UPDATE users SET status = 'ACTIVE' WHERE id = 2");
+    reviewTransaction($db, 1, $suspendedTransfer['id'], 'APPROVE');
+    check(balance($db, 1) === '99.00' && balance($db, 2) === '1.00', 'pending transfer can be approved after reactivation');
     echo "Integrity checks passed: $count\n";
 } finally {
     if ($db->inTransaction()) $db->rollBack();
