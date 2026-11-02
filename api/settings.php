@@ -30,11 +30,23 @@ if ($action === 'profile') {
     if (!preg_match('/^[A-Za-z0-9_]{3,50}$/D',$username) || !filter_var($email,FILTER_VALIDATE_EMAIL)) throw new InvalidArgumentException('Enter a valid username and email address.');
     $identityChanged = $username !== $account['username'] || $email !== $account['email'];
     if ($identityChanged && !password_verify($currentPassword,$account['password_hash'])) jsonResponseAfterRollback($db,'Your current password is required to change your username or email.',403);
-    try { $db->prepare('UPDATE users SET full_name = ?, username = ?, email = ? WHERE id = ?')->execute([$name,$username,$email,$user]); }
-    catch (PDOException $error) { if ($error->getCode() === '23000') throw new DomainException('That username or email is already in use.'); throw $error; }
-    auditEvent($db,$user,'PROFILE_UPDATED','user',$user,['identity_changed'=>$identityChanged]);
-    $db->commit(); $_SESSION['full_name']=$name; $_SESSION['username']=$username;
-    jsonResponse(['success'=>'Profile saved. Email delivery and email verification are not enabled yet.']);
+    if ($name === $account['full_name'] && $username === $account['username'] && $email === $account['email']) throw new DomainException('Change at least one profile detail before submitting.');
+    $pending = $db->prepare("SELECT * FROM profile_change_requests WHERE user_id = ? AND status = 'PENDING' ORDER BY id LIMIT 1 FOR UPDATE");
+    $pending->execute([$user]); $existing = $pending->fetch();
+    if ($existing) {
+        if ($existing['full_name'] === $name && $existing['username'] === $username && $existing['email'] === $email) {
+            $db->commit(); jsonResponse(['success'=>'This profile change is already awaiting administrator review.', 'request_id'=>(int)$existing['id']]);
+        }
+        throw new DomainException('You already have a profile change awaiting review. Wait for the decision before submitting another.');
+    }
+    $duplicate = $db->prepare('SELECT id FROM users WHERE id <> ? AND (username = ? OR email = ?) LIMIT 1');
+    $duplicate->execute([$user,$username,$email]);
+    if ($duplicate->fetchColumn()) throw new DomainException('That username or email is already in use.');
+    $db->prepare('INSERT INTO profile_change_requests (user_id, previous_full_name, previous_username, previous_email, full_name, username, email) VALUES (?, ?, ?, ?, ?, ?, ?)')->execute([$user,$account['full_name'],$account['username'],$account['email'],$name,$username,$email]);
+    $requestId = (int)$db->lastInsertId();
+    auditEvent($db,$user,'REQUESTED','profile_change',$requestId,[]);
+    $db->commit();
+    jsonResponse(['success'=>'Profile change submitted for administrator approval. Your current details remain unchanged until approval.', 'request_id'=>$requestId],201);
 }
 if (!password_verify($currentPassword,$account['password_hash'])) jsonResponseAfterRollback($db,'Your current password is incorrect.',403);
 $newPassword = $_POST['new_password'] ?? null; $confirm = $_POST['confirm_password'] ?? null;
