@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const reject = review.action === 'REJECT';
         document.getElementById('review-title').textContent = reject ? 'Reject request' : 'Approve request';
         document.getElementById('review-summary').textContent = review.summary;
-        document.getElementById('review-note').textContent = reject ? 'The request and your reason will remain in the history.' : 'Approval applies this request. Funds and account status will be checked again.';
+        document.getElementById('review-note').textContent = reject ? 'The request and your reason will remain in the history.' : (review.reviewKind === 'profile' ? 'Approval applies the requested profile details after checking they are still available.' : 'Approval applies this request. Funds and account status will be checked again.');
         document.getElementById('review-reason-group').hidden = !reject;
         const reason = document.getElementById('review-reason');
         reason.required = reject;
@@ -21,10 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const form = event.currentTarget;
         await withBusy(form, async () => {
             const kind = review.reviewKind;
-            const result = await API.post(kind === 'transaction' ? 'api/admin-tx.php' : 'api/admin-accounts.php', {
-                [kind === 'transaction' ? 'tx_id' : 'account_id']: review.id,
-                action: review.action, reason: document.getElementById('review-reason').value.trim()
-            });
+            const route = {transaction:['api/admin-tx.php','tx_id'], account:['api/admin-accounts.php','account_id'], profile:['api/admin-profile.php','request_id']}[kind];
+            if (!route) return;
+            const result = await API.post(route[0], { [route[1]]: review.id, action: review.action, reason: document.getElementById('review-reason').value.trim() });
             showMessage('review-alert', result.error || result.success, !result.success);
             if (result.success) { form.dataset.completed = 'true'; setTimeout(() => location.reload(), 650); }
         });
