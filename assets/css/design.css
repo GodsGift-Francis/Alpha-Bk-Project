@@ -1,4 +1,4 @@
-/* AlphaBank / Perspective design system. Presentation layer only. */
+/* Crestivale Financial / Perspective design system. Presentation layer only. */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=Manrope:wght@400;500;600;650;700;750;800&display=swap');
 :root{--primary-color:#153f35;--primary-light:#244f43;--secondary-color:#164f3b;--secondary-hover:#0a3728;--accent-color:#c9e4a6;--background-color:#f5f6f2;--card-background:#fff;--text-primary:#1c302b;--text-secondary:#62716a;--border-color:#dfe6df;--radius:18px;--shadow:0 4px 16px rgb(27 54 43 / .035);--shadow-lg:0 8px 28px rgb(27 54 43 / .07);--sidebar:250px}
 body{font-family:'DM Sans',system-ui,sans-serif;background:var(--background-color);color:var(--text-primary);font-size:15px;line-height:1.65}
@@ -36,3 +36,12 @@ input[type],select,textarea{background:#fafbf8;border-radius:9px;border-color:#d
 .password-toggle:hover { background: #eaf0e3; }
 .password-toggle svg { width: 22px; height: 22px; }
 .password-toggle[aria-pressed="true"] { background: #e5edda; }
+
+/* Crestivale identity: shared C/crest mark and compact two-line wordmark. */
+.brand .brand-mark{padding:0;letter-spacing:0;flex:0 0 34px;overflow:hidden}
+.brand-mark img{display:block;width:100%;height:100%}
+.brand-wordmark{display:block;line-height:1;white-space:nowrap}
+.brand-wordmark small{display:block;font-size:.48rem;font-weight:650;letter-spacing:.26em;margin-top:6px;line-height:1.2;opacity:.8}
+.slab-mark img{display:block;width:88px;height:88px;margin:6px 0}
+.auth-emblem img{display:block;width:128px;height:128px;max-width:65%;border-radius:28px}
+@media(max-width:360px){.brand{gap:8px}.brand-wordmark small{font-size:.43rem;letter-spacing:.22em}.footer-brand{font-size:.95rem}}
