@@ -134,3 +134,21 @@ an image asset dependency. Web fonts fall back to system sans-serif fonts.
 
 See [design research](docs/DESIGN_RESEARCH.md) for the sources, original design
 interpretation and the mapping from research to implemented screens.
+
+## Account settings
+
+The Settings page includes profile editing, Light/Dark/Device appearance,
+comfortable/compact density, reduced motion and visual balance blurring. Preferences
+are stored per user and synchronized at authentication, without shared-browser
+localStorage. Currency remains a display-symbol preference, not conversion.
+
+Profile username/email changes require the current password. Password changes
+require current-password verification and matching confirmation; they rotate the
+current session ID and increment the account session version to revoke other
+sessions. Customer passwords retain the configured four-byte minimum; administrator
+password changes require at least sixteen bytes. Email verification and delivery
+remain unimplemented and are labeled as such in the interface.
+
+Run `php scripts/migrate.php` before deploying this version to an existing database.
+Migration `002_user_preferences.php` adds preferences and session-version columns;
+new installations apply it through the normal database initialization command.
