@@ -1,4 +1,4 @@
-# AlphaBank
+# Crestivale Financial
 
 A PHP/MySQL account-management application with administrator-reviewed deposits,
 withdrawals and transfers. Requests remain pending until an administrator reviews
@@ -170,8 +170,14 @@ For a credential-free PHP hosting package and the zero-budget development route,
 see [the free launch guide](docs/FREE_LAUNCH.md). Build with:
 
 ```sh
-python scripts/package-deployment.py --output /absolute/path/AlphaBank-free-launch.zip --build-dir /absolute/path/new-empty-build-directory
+python scripts/package-deployment.py --output /absolute/path/Crestivale-free-launch.zip --build-dir /absolute/path/new-empty-build-directory
 ```
 
 Only the packaged `public/` directory is a web document root. The package excludes
 local data and secrets and expects private server configuration before use.
+
+## Brand and deployment identity
+
+The application is branded **Crestivale Financial**, shortened to **Crestivale** in compact navigation. The C and rising crest mark is shared by the site header, homepage, sign-in illustration and browser icon. `crestivale` is the suggested alwaysdata account name; availability is confirmed only by the hosting provider.
+
+Existing database names, test fixtures and `ALPHABANK_ADMIN_PASSWORD` remain compatible with earlier installations. They are internal identifiers, not customer-facing branding. The rebrand does not migrate or recreate customer accounts, balances or administrator credentials. The GitHub repository URL remains unchanged.
