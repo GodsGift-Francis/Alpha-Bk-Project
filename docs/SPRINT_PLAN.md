@@ -1,4 +1,4 @@
-# AlphaBank production upgrade sprints
+# Crestivale Financial production upgrade sprints
 
 Core contract: multiple accounts, user-submitted deposits/withdrawals/transfers,
 manual administrator approval, and balance changes only on approval. No automatic
