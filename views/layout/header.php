@@ -24,10 +24,10 @@ function uiIcon(string $name): string {
     return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' . $path . '"/></svg>';
 }
 function uiText($value): string { return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
-$titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview', 'deposit.php'=>'Deposit request', 'withdraw.php'=>'Withdrawal request', 'transfer.php'=>'Transfer funds', 'settings.php'=>'Preferences', 'invoice.php'=>'Transaction invoice'];
+$titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview', 'deposit.php'=>'Deposit request', 'withdraw.php'=>'Withdrawal request', 'transfer.php'=>'Transfer funds', 'settings.php'=>'Settings', 'invoice.php'=>'Transaction invoice'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-color-mode="<?php echo uiText($logged_in ? ($_SESSION['appearance'] ?? 'system') : 'light'); ?>" data-density="<?php echo uiText($_SESSION['density'] ?? 'comfortable'); ?>" data-reduce-motion="<?php echo !empty($_SESSION['reduce_motion']) ? 'true' : 'false'; ?>" data-hide-balances="<?php echo !empty($_SESSION['hide_balances']) ? 'true' : 'false'; ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,6 +38,8 @@ $titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview',
     <link rel="icon" type="image/svg+xml" sizes="any" href="assets/favicon.svg?v=2">
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/design.css">
+    <link rel="stylesheet" href="assets/css/preferences.css">
+    <script src="assets/js/preferences.js"></script>
 </head>
 <body class="<?php echo $view_mode . ($auth_page ? ' auth-page' : '') . ($public_home ? ' home-page' : ''); ?>">
 <a class="skip-link" href="#main-content">Skip to content</a>
@@ -51,7 +53,7 @@ $titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview',
             <?php $links = $admin_view ? [['admin.php','home','Overview'],['admin.php#pending-transactions','transfer','Transaction reviews'],['admin.php#pending-accounts','shield','Account requests'],['admin.php#clients','home','Clients'],['admin.php#transaction-audit','receipt','Transaction records']] : [['dashboard.php','home','Overview'],['deposit.php','deposit','Deposit'],['withdraw.php','withdraw','Withdraw'],['transfer.php','transfer','Transfer']]; ?>
             <?php foreach ($links as [$href,$icon,$label]): ?><a href="<?php echo $href; ?>" class="<?php echo $href === $current_page ? 'active' : ''; ?>" <?php echo $href === $current_page ? 'aria-current="page"' : ''; ?>><?php echo uiIcon($icon); ?><span><?php echo $label; ?></span></a><?php endforeach; ?>
             <span class="nav-group-label nav-secondary">ACCOUNT</span>
-            <a href="settings.php" class="<?php echo $current_page === 'settings.php' ? 'active' : ''; ?>"><?php echo uiIcon('settings'); ?><span>Preferences</span></a>
+            <a href="settings.php" class="<?php echo $current_page === 'settings.php' ? 'active' : ''; ?>"><?php echo uiIcon('settings'); ?><span>Settings</span></a>
             <?php if (!$admin_view): ?>
             <div class="notification-wrapper" id="notification-trigger">
                 <button type="button" class="notification-bell-btn" aria-label="Notifications" aria-expanded="false" aria-controls="notification-dropdown"><?php echo uiIcon('bell'); ?><span>Notifications</span></button><span class="notification-badge" id="nav-badge">0</span>
@@ -72,6 +74,6 @@ $titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview',
 <main class="container" id="main-content">
 <?php if ($auth_page): ?>
 <section class="auth-story"><p class="eyebrow"><?php echo $current_page === 'admin-login.php' ? 'OPERATIONS WORKSPACE' : 'A CLEARER WAY TO BANK'; ?></p><h1><?php echo $current_page === 'admin-login.php' ? 'Clarity behind<br>every decision.' : ($current_page === 'register.php' ? 'A fresh start.<br>A clearer view.' : 'Your next chapter<br>starts here.'); ?></h1><p><?php echo $current_page === 'admin-login.php' ? 'A focused workspace for account reviews, transaction decisions and client oversight.' : 'A thoughtful space for your everyday finances. Your accounts, requests and transaction records, all together.'; ?></p><div class="auth-emblem" aria-hidden="true"><span>A</span></div><div class="auth-assurance"><?php echo uiIcon('shield'); ?><span><?php echo $current_page === 'admin-login.php' ? 'Authorized administrators only' : 'Protected sign-in. Clear transaction records.'; ?></span></div></section>
-<?php elseif (in_array($current_page,['deposit.php','withdraw.php','transfer.php','settings.php'],true)): ?>
+<?php elseif (in_array($current_page,['deposit.php','withdraw.php','transfer.php'],true)): ?>
 <div class="task-heading"><p class="eyebrow"><?php echo $current_page === 'settings.php' ? 'MAKE IT YOURS' : 'YOUR MONEY, IN MOTION'; ?></p><h1><?php echo $current_page === 'settings.php' ? 'The details that matter.' : 'Make your next move.'; ?></h1><p>Simple steps. A clear record. Always in your control.</p></div>
 <?php endif; ?>
