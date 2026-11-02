@@ -47,7 +47,7 @@ function isLoggedIn() {
                 return false;
             }
         } catch (Exception $e) {
-            error_log('AlphaBank authentication synchronization failed.');
+            error_log('Crestivale Financial authentication synchronization failed.');
             return false;
         }
     }
