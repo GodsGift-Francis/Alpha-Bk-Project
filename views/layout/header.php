@@ -32,12 +32,12 @@ $titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview',
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#123e35">
-    <title><?php echo uiText($titles[$current_page] ?? ($current_page === 'index.php' ? 'Banking, thoughtfully simple' : 'Welcome')); ?> | AlphaBank</title>
+    <title><?php echo uiText($titles[$current_page] ?? ($current_page === 'index.php' ? 'Banking, thoughtfully simple' : 'Welcome')); ?> | Crestivale Financial</title>
     <meta name="csrf-token" content="<?php echo getCsrfToken(); ?>">
     <script>const CURRENCY_SYMBOL = <?php echo json_encode($logged_in ? getCurrencySymbol() : '$'); ?>;</script>
-    <link rel="icon" type="image/svg+xml" sizes="any" href="assets/favicon.svg?v=2">
+    <link rel="icon" type="image/svg+xml" sizes="any" href="assets/favicon.svg?v=3">
     <link rel="stylesheet" href="assets/css/main.css">
-    <link rel="stylesheet" href="assets/css/design.css">
+    <link rel="stylesheet" href="assets/css/design.css?v=3">
     <link rel="stylesheet" href="assets/css/preferences.css">
     <script src="assets/js/preferences.js"></script>
 </head>
@@ -45,7 +45,7 @@ $titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview',
 <a class="skip-link" href="#main-content">Skip to content</a>
 <header class="site-header">
     <div class="container">
-        <a class="brand" href="<?php echo $logged_in ? ($admin_view ? 'admin.php' : 'dashboard.php') : 'index.php'; ?>" aria-label="AlphaBank home"><span class="brand-mark" aria-hidden="true">A<span></span></span><span>AlphaBank<span class="brand-period">.</span></span></a>
+        <a class="brand" href="<?php echo $logged_in ? ($admin_view ? 'admin.php' : 'dashboard.php') : 'index.php'; ?>" aria-label="Crestivale Financial home"><span class="brand-mark" aria-hidden="true"><img src="assets/brand-mark.svg" alt="" width="34" height="34"></span><span class="brand-wordmark">Crestivale<span class="brand-period">.</span><small>FINANCIAL</small></span></a>
         <?php if ($logged_in || $current_page !== 'admin-login.php'): ?><button class="nav-toggle" type="button" aria-controls="primary-nav" aria-expanded="false">Menu</button><?php endif; ?>
         <nav id="primary-nav" aria-label="Main navigation">
         <?php if ($logged_in): ?>
@@ -69,12 +69,12 @@ $titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview',
     </div>
 </header>
 <?php if ($logged_in): ?>
-<div class="workspace-bar"><span><?php echo $admin_view ? 'ALPHABANK / OPERATIONS' : 'PERSONAL BANKING / ' . strtoupper($titles[$current_page] ?? 'HOME'); ?></span><div><span class="workspace-role"><?php echo $admin_view ? 'Administrator' : 'Personal account'; ?></span><span class="avatar"><?php echo uiText($profileInitial); ?></span></div></div>
+<div class="workspace-bar"><span><?php echo $admin_view ? 'CRESTIVALE / OPERATIONS' : 'PERSONAL BANKING / ' . strtoupper($titles[$current_page] ?? 'HOME'); ?></span><div><span class="workspace-role"><?php echo $admin_view ? 'Administrator' : 'Personal account'; ?></span><span class="avatar"><?php echo uiText($profileInitial); ?></span></div></div>
 <?php endif; ?>
 <?php if (getenv('APP_DEMO') === '1'): ?><div class="demo-banner" role="note">Development preview &middot; Use sample data only. No real payments are processed.</div><?php endif; ?>
 <main class="container" id="main-content">
 <?php if ($auth_page): ?>
-<section class="auth-story"><p class="eyebrow"><?php echo $current_page === 'admin-login.php' ? 'OPERATIONS WORKSPACE' : 'A CLEARER WAY TO BANK'; ?></p><h1><?php echo $current_page === 'admin-login.php' ? 'Clarity behind<br>every decision.' : ($current_page === 'register.php' ? 'A fresh start.<br>A clearer view.' : 'Your next chapter<br>starts here.'); ?></h1><p><?php echo $current_page === 'admin-login.php' ? 'A focused workspace for account reviews, transaction decisions and client oversight.' : 'A thoughtful space for your everyday finances. Your accounts, requests and transaction records, all together.'; ?></p><div class="auth-emblem" aria-hidden="true"><span>A</span></div><div class="auth-assurance"><?php echo uiIcon('shield'); ?><span><?php echo $current_page === 'admin-login.php' ? 'Authorized administrators only' : 'Protected sign-in. Clear transaction records.'; ?></span></div></section>
+<section class="auth-story"><p class="eyebrow"><?php echo $current_page === 'admin-login.php' ? 'OPERATIONS WORKSPACE' : 'A CLEARER WAY TO BANK'; ?></p><h1><?php echo $current_page === 'admin-login.php' ? 'Clarity behind<br>every decision.' : ($current_page === 'register.php' ? 'A fresh start.<br>A clearer view.' : 'Your next chapter<br>starts here.'); ?></h1><p><?php echo $current_page === 'admin-login.php' ? 'A focused workspace for account reviews, transaction decisions and client oversight.' : 'A thoughtful space for your everyday finances. Your accounts, requests and transaction records, all together.'; ?></p><div class="auth-emblem" aria-hidden="true"><img src="assets/brand-mark.svg" alt="" width="128" height="128"></div><div class="auth-assurance"><?php echo uiIcon('shield'); ?><span><?php echo $current_page === 'admin-login.php' ? 'Authorized administrators only' : 'Protected sign-in. Clear transaction records.'; ?></span></div></section>
 <?php elseif (in_array($current_page,['deposit.php','withdraw.php','transfer.php'],true)): ?>
 <div class="task-heading"><p class="eyebrow"><?php echo $current_page === 'settings.php' ? 'MAKE IT YOURS' : 'YOUR MONEY, IN MOTION'; ?></p><h1><?php echo $current_page === 'settings.php' ? 'The details that matter.' : 'Make your next move.'; ?></h1><p>Simple steps. A clear record. Always in your control.</p></div>
 <?php endif; ?>
