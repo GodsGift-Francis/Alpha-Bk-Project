@@ -1,4 +1,4 @@
-name: AlphaBank checks
+name: Crestivale Financial checks
 on: [push, pull_request]
 permissions:
   contents: read
