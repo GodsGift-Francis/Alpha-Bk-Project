@@ -10,7 +10,7 @@ require_once __DIR__ . '/views/layout/header.php';
 ?>
 <div class="card max-w-md">
     <p class="eyebrow">MAKE ROOM FOR WHAT'S NEXT</p>
-    <h2 class="card-title text-center">Create your AlphaBank account</h2>
+    <h2 class="card-title text-center">Create your Crestivale Financial account</h2>
     <p class="auth-description">Create your profile to begin your account request.</p>
     <div id="register-alert" aria-live="polite"></div>
     <form id="register-form">
