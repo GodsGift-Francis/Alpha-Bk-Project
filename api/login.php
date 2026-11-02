@@ -25,4 +25,5 @@ if (!$user || !$valid || ($adminPortal && (int)$user['is_admin'] !== 1)) jsonRes
 if (!$adminPortal && (int)$user['is_admin'] === 1) jsonResponse(['error' => 'Please use the administrator sign-in page.'], 403);
 $db->prepare('DELETE FROM login_limits WHERE bucket = ?')->execute([$buckets[0]]);
 loginUser($user['id'], $user['username'], $user['is_admin'], $user['currency']);
+$_SESSION['session_version'] = (int)$user['session_version'];
 jsonResponse(['success' => 'Login successful', 'is_admin' => (int)$user['is_admin']]);
