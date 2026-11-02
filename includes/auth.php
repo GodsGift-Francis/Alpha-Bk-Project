@@ -28,15 +28,16 @@ function isLoggedIn() {
         }
         try {
             if (!$db) $db = require __DIR__ . '/../config/database.php';
-            $stmt = $db->prepare("SELECT is_admin, currency, username, full_name FROM users WHERE id = ? AND status = 'ACTIVE'");
+            $stmt = $db->prepare("SELECT is_admin, currency, username, full_name, appearance, density, reduce_motion, hide_balances, session_version FROM users WHERE id = ? AND status = 'ACTIVE'");
             $stmt->execute([$_SESSION['user_id']]);
             $user = $stmt->fetch();
             
-            if ($user) {
+            if ($user && (int)($_SESSION['session_version'] ?? 1) === (int)$user['session_version']) {
                 $_SESSION['is_admin'] = $user['is_admin'];
                 $_SESSION['currency'] = $user['currency'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['full_name'] = $user['full_name'];
+                foreach (['appearance', 'density', 'reduce_motion', 'hide_balances', 'session_version'] as $preference) $_SESSION[$preference] = $user[$preference];
                 $_SESSION['last_activity'] = time();
                 return true;
             } else {
