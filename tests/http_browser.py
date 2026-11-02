@@ -95,6 +95,10 @@ with tempfile.TemporaryDirectory(prefix='alphabank-tests-') as temporary:
         check(guest.post('/api/admin-login.php', {'username': fixture['sender'], 'password': fixture['password']})[0] == 401, 'customer denied administrator sign in')
         check(guest.post('/api/login.php', {'username': fixture['admin'], 'password': fixture['password']})[0] == 403, 'administrator must use administrator sign in')
         check(guest.post('/api/admin-login.php', {}, csrf=False)[0] == 403, 'administrator sign in requires CSRF')
+        registration = {'username': 'fourchar_customer', 'email': 'fourchar@example.test', 'full_name': 'Short Password Test', 'password': 'abc'}
+        check(guest.post('/api/register.php', registration)[0] == 422, 'customer registration rejects three-character passwords')
+        registration['password'] = 'abcd'
+        check(guest.post('/api/register.php', registration)[0] == 201, 'customer registration accepts four-character passwords')
         sender.login(fixture['sender'], fixture['password'])
         admin.login(fixture['admin'], fixture['password'], administrator=True)
         recipient.login(fixture['recipient'], fixture['password'])
