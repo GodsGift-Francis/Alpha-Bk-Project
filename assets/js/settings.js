@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('open-profile-request')?.addEventListener('click', () => document.getElementById('profile-request-dialog').showModal());
     document.querySelectorAll('[data-settings-form]').forEach(form => {
         form.addEventListener('submit', event => {
             event.preventDefault();
