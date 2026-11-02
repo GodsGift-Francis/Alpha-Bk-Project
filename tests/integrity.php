@@ -50,7 +50,7 @@ function parallelReviews(PDO $db, string $database, array $ids): array {
 }
 try {
     $schema = require __DIR__ . '/../database/schema.php'; $schema($db); runMigrations($db); runMigrations($db);
-    check((int)$db->query('SELECT COUNT(*) FROM schema_migrations')->fetchColumn() === 1, 'fresh schema and repeat migration');
+    check((int)$db->query('SELECT COUNT(*) FROM schema_migrations')->fetchColumn() === count(glob(__DIR__ . '/../database/migrations/*.php')), 'fresh schema and repeat migration');
     $db->exec("INSERT INTO users (id, username, email, password_hash, full_name, is_admin) VALUES (1, 'admin', 'admin@example.test', 'unused', 'Admin', 1), (2, 'sender', 'sender@example.test', 'unused', 'Sender', 0), (3, 'recipient', 'recipient@example.test', 'unused', 'Recipient', 0)");
     $db->exec("INSERT INTO accounts (id, user_id, account_number, account_type, balance, status) VALUES (1, 2, 'ACC-1000000001', 'Checking', 100.00, 'APPROVED'), (2, 3, 'ACC-1000000002', 'Checking', 0.00, 'APPROVED')");
     check(moneyValue('0.1') === '0.10' && moneyCents('9999999999999.99') === 999999999999999, 'exact decimal normalization and maximum precision');
