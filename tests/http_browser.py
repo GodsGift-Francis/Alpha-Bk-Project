@@ -238,6 +238,10 @@ with tempfile.TemporaryDirectory(prefix='alphabank-tests-') as temporary:
                 check(page.locator('#amount').input_value() == '1.25', 'canceling review preserves form values')
                 page.get_by_role('button', name='Submit Transfer Request').click()
                 page.get_by_role('button', name='Submit request', exact=True).click()
+                page.locator('.request-receipt').wait_for()
+                check(page.locator('.request-receipt [data-invoice]').get_attribute('href').startswith('invoice.php?id='), 'submitted request has an invoice action')
+                check(page.locator('.review-banner').inner_text().find('Awaiting administrator review') >= 0, 'request receipt explains pending review')
+                page.get_by_role('link', name='Back to overview').click()
                 page.wait_for_url('**/dashboard.php')
                 check(True, 'browser submits transfer request through confirmation dialog')
                 for width in [320, 375, 768, 1280, 1920, 2560]:
