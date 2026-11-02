@@ -39,6 +39,7 @@ $titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview',
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/design.css?v=3">
     <link rel="stylesheet" href="assets/css/preferences.css">
+    <link rel="stylesheet" href="assets/css/feedback.css?v=1">
     <script src="assets/js/preferences.js"></script>
 </head>
 <body class="<?php echo $view_mode . ($auth_page ? ' auth-page' : '') . ($public_home ? ' home-page' : ''); ?>">
