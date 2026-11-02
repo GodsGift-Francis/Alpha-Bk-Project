@@ -8,7 +8,7 @@ function adminPage(string $name): int {
     return is_string($value) && preg_match('/^[0-9]+$/D', $value) ? min(100000, max(1, (int)$value)) : 1;
 }
 function pageLink(string $field, int $page, string $anchor): string {
-    $query = array_intersect_key($_GET, array_flip(['clients', 'tx_page', 'account_page', 'audit_page']));
+    $query = array_intersect_key($_GET, array_flip(['clients', 'tx_page', 'account_page', 'audit_page', 'profile_page']));
     $query[$field] = $page;
     return 'admin.php?' . http_build_query($query) . '#' . $anchor;
 }
@@ -28,6 +28,10 @@ $tx_count = (int)$db->query('SELECT COUNT(*) FROM transactions')->fetchColumn();
 $auditPage = min($auditPage, max(1, (int)ceil($tx_count / 20)));
 $recent_tx = $db->query('SELECT t.*, a.account_number, u.username FROM transactions t JOIN accounts a ON t.account_id = a.id JOIN users u ON a.user_id = u.id ORDER BY t.timestamp DESC, t.id DESC LIMIT 20 OFFSET ' . (($auditPage - 1) * 20))->fetchAll();
 $events = $db->query('SELECT ev.*, u.username FROM audit_events ev LEFT JOIN users u ON ev.actor_id = u.id ORDER BY ev.id DESC LIMIT 20')->fetchAll();
+$profilePage = adminPage('profile_page');
+$profileCount = (int)$db->query("SELECT COUNT(*) FROM profile_change_requests WHERE status = 'PENDING'")->fetchColumn();
+$profilePage = min($profilePage, max(1, (int)ceil($profileCount / 20)));
+$pendingProfiles = $db->query("SELECT p.*, u.username AS current_username FROM profile_change_requests p JOIN users u ON u.id = p.user_id WHERE p.status = 'PENDING' ORDER BY p.id LIMIT 20 OFFSET " . (($profilePage - 1) * 20))->fetchAll();
 require_once __DIR__ . '/views/layout/header.php';
 ?>
 <div class="dashboard-header">
@@ -38,7 +42,7 @@ require_once __DIR__ . '/views/layout/header.php';
 </div>
 <a href="#pending-transactions" class="btn btn-primary">Review pending requests</a>
 </div>
-<nav class="operations-tabs" aria-label="Operations sections"><a href="#pending-transactions">Transaction reviews</a><a href="#pending-accounts">Account requests</a><a href="#clients">Client directory</a><a href="#transaction-audit">Records &amp; audit</a></nav>
+<nav class="operations-tabs" aria-label="Operations sections"><a href="#pending-transactions">Transaction reviews</a><a href="#pending-accounts">Account requests</a><a href="#profile-reviews">Profile changes (<?php echo (int)$profileCount; ?>)</a><a href="#clients">Client directory</a><a href="#transaction-audit">Records &amp; audit</a></nav>
 <div id="admin-alert" aria-live="polite">
 </div>
 <div class="accounts-grid summary-grid">
@@ -186,6 +190,9 @@ require_once __DIR__ . '/views/layout/header.php';
 </div>
     <?php endif; ?>
 </section>
+<section class="card" id="profile-reviews"><div class="section-heading"><h3 class="card-title">Profile Change Queue (<?php echo (int)$profileCount; ?>)</h3><span class="text-secondary text-sm">Oldest requests first</span></div>
+<?php if (!$pendingProfiles): ?><p class="text-secondary">No profile changes awaiting review.</p><?php else: ?><div class="table-container" tabindex="0" role="region" aria-label="Profile change requests"><table class="history-table"><thead><tr><th>Request</th><th>Current details</th><th>Requested details</th><th>Review</th></tr></thead><tbody>
+<?php foreach ($pendingProfiles as $request): ?><tr><td><strong>PR-<?php echo (int)$request['id']; ?></strong><br><?php echo e($request['current_username']); ?><br><span class="text-secondary"><?php echo e($request['created_at']); ?></span></td><td><?php foreach (['full_name','username','email'] as $field): ?><?php echo e($request['previous_'.$field]); ?><br><?php endforeach; ?></td><td><?php foreach (['full_name','username','email'] as $field): ?><?php echo e($request[$field]); ?><br><?php endforeach; ?></td><td><div class="row-actions"><?php foreach (['APPROVE','REJECT'] as $action): ?><button type="button" class="btn btn-small <?php echo $action === 'APPROVE' ? 'btn-primary' : 'btn-secondary'; ?>" data-review-kind="profile" data-id="<?php echo (int)$request['id']; ?>" data-action="<?php echo $action; ?>" data-summary="<?php echo e('PR-'.$request['id'].' · '.$request['current_username'].' → '.$request['username']); ?>"><?php echo $action === 'APPROVE' ? 'Approve' : 'Reject'; ?></button><?php endforeach; ?></div></td></tr><?php endforeach; ?></tbody></table></div><div class="pagination"><?php if ($profilePage > 1): ?><a class="btn btn-secondary" href="<?php echo e(pageLink('profile_page',$profilePage-1,'profile-reviews')); ?>">Previous</a><?php endif; ?><span>Page <?php echo (int)$profilePage; ?></span><?php if ($profilePage * 20 < $profileCount): ?><a class="btn btn-secondary" href="<?php echo e(pageLink('profile_page',$profilePage+1,'profile-reviews')); ?>">Next</a><?php endif; ?></div><?php endif; ?></section>
 <section class="card" id="clients">
 <h3 class="card-title">Client Financial Overview</h3>
     <form class="filter-bar" method="get" action="admin.php#clients">
