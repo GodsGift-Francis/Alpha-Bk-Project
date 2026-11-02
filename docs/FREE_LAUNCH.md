@@ -1,4 +1,4 @@
-# AlphaBank — zero-budget development launch
+# Crestivale Financial — zero-budget development launch
 
 Prepared 2 November 2026. This is a development preview using sample data, not a
 production launch for customer funds. The package sets APP_DEMO=1 and displays
@@ -28,7 +28,7 @@ alternative; do not subscribe to a paid plan to get around it.
 
 ## 1. Create your hosting profile and Free account
 
-Choose an available account name. `alphabank-preview` is a suggestion, not a
+Choose an available account name. `crestivale` is a suggestion, not a
 reserved name or a verified available address. Record the assigned site URL.
 Enable account 2FA if offered. Do not send passwords or card details in chat.
 
@@ -36,17 +36,17 @@ Enable account 2FA if offered. Do not send passwords or card details in chat.
 
 Extract the ZIP locally. Connect with SFTP using the server/user details in
 **Remote access → SSH/SFTP**, verifying the displayed server fingerprint. Upload
-`alphabank/` to your hosting home directory. The result should be:
+`crestivale/` to your hosting home directory. The result should be:
 
 ```
-/home/ACCOUNT/alphabank/
+/home/ACCOUNT/crestivale/
   app/       application source and CLI migrations
   private/   private configuration, bootstrap and sessions
   public/    the only directory exposed to the website
 ```
 
 Do not upload your Windows `work/` directory or export the local development DB.
-Do not set the website document root to `alphabank/` or `app/`.
+Do not set the website document root to `crestivale/` or `app/`.
 
 ## 3. Create an empty MariaDB database
 
@@ -69,7 +69,7 @@ Do not paste this configuration into chat or commit it to GitHub.
 From the hosting SSH terminal:
 
 ```sh
-cd ~/alphabank
+cd ~/crestivale
 php app/includes/db-init.php
 ```
 
@@ -84,7 +84,7 @@ is not included in shell command history. Choose at least 16 characters.
 Replace the email argument with the address you intend for the administrator.
 
 ```sh
-cd ~/alphabank
+cd ~/crestivale
 read -rsp 'Choose the administrator password: ' ALPHABANK_ADMIN_PASSWORD
 printf '\n'
 export ALPHABANK_ADMIN_PASSWORD
@@ -100,7 +100,7 @@ admin credentials are shipped, and the local Curtis Breen account is not copied.
 In **Web → Sites**, use a PHP website with:
 
 - Address: the free `ACCOUNT.alwaysdata.net` address assigned by the provider.
-- Document root: `/home/ACCOUNT/alphabank/public`.
+- Document root: `/home/ACCOUNT/crestivale/public`.
 - PHP: 8.4, with PDO MySQL and sessions enabled.
 - HTTPS: enable the provider's certificate and HTTP-to-HTTPS redirection.
 
