@@ -12,7 +12,7 @@ set_exception_handler(function (Throwable $error) {
     if ($db instanceof PDO && $db->inTransaction()) $db->rollBack();
     if ($error instanceof InvalidArgumentException) jsonResponse(['error' => $error->getMessage()], 422);
     if ($error instanceof DomainException) jsonResponse(['error' => $error->getMessage()], 409);
-    error_log('AlphaBank API: ' . $error->getMessage());
+    error_log('Crestivale Financial API: ' . $error->getMessage());
     jsonResponse(['error' => 'The request could not be completed. Please try again.'], 500);
 });
 $db = require __DIR__ . '/../config/database.php';
