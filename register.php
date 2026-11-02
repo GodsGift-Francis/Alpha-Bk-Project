@@ -28,7 +28,7 @@ require_once __DIR__ . '/views/layout/header.php';
         </div>
         <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" name="password" maxlength="72" autocomplete="new-password" minlength="12" placeholder="At least 12 characters" required>
+            <input type="password" id="password" name="password" maxlength="72" autocomplete="new-password" minlength="4" placeholder="At least 4 characters" required>
         </div>
         <button type="submit" class="btn btn-primary btn-block">Create Account</button>
     </form>
