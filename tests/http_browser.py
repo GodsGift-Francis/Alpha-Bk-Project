@@ -143,18 +143,44 @@ with tempfile.TemporaryDirectory(prefix='alphabank-tests-') as temporary:
         check(admin.post('/api/admin-manage.php', {'type': 'transaction', 'id': 1})[0] == 409, 'financial record deletion disabled')
         check(admin.post('/api/admin-edit.php', {'type': 'transaction', 'field': 'timestamp', 'id': 1, 'value': '2000-01-01'})[0] == 409, 'original transaction timestamps immutable')
         check(sender.post('/api/settings.php', {'action': 'profile'}, csrf=False)[0] == 403, 'profile settings require CSRF')
+        settings_html = sender.get('/settings.php')[1]
+        check('data-password-toggle aria-controls="security-current-password"' not in settings_html and 'class="current-profile"' in settings_html, 'current password stays masked and current profile is read-only')
         profile_data = {'action': 'profile', 'full_name': 'Updated Sender', 'username': fixture['sender'], 'email': fixture['sender'] + '@example.test'}
-        check(sender.post('/api/settings.php', profile_data)[0] == 200, 'owner can update their profile name')
-        check('Welcome back' in sender.get('/dashboard.php')[1] and 'Updated' in sender.get('/dashboard.php')[1], 'updated first name appears on dashboard')
+        status, submitted = sender.post('/api/settings.php', profile_data)
+        check(status == 201 and 'Updated' not in sender.get('/dashboard.php')[1], 'profile submission remains pending without changing current name')
+        request_id = submitted['request_id']
+        check(sender.post('/api/settings.php', profile_data)[1]['request_id'] == request_id, 'identical profile retry reuses the pending request')
+        check(sender.post('/api/settings.php', {**profile_data, 'full_name': 'Different Sender'})[0] == 409, 'only one pending profile request allowed')
+        check(sender.post('/api/admin-profile.php', {'request_id': request_id, 'action': 'APPROVE'})[0] == 403, 'customer cannot approve profile changes')
+        check(admin.post('/api/admin-profile.php', {'request_id': request_id, 'action': 'APPROVE'}, csrf=False)[0] == 403, 'profile approval requires CSRF')
+        check('PR-' + str(request_id) in admin.get('/admin.php')[1], 'pending profile request appears in administrator queue')
+        check(admin.post('/api/admin-profile.php', {'request_id': request_id, 'action': 'APPROVE'})[0] == 200, 'administrator applies approved profile changes')
+        check(admin.post('/api/admin-profile.php', {'request_id': request_id, 'action': 'APPROVE'})[0] == 409, 'profile request cannot be approved twice')
+        check('Updated' in sender.get('/dashboard.php')[1], 'approved name appears on dashboard')
         profile_data['username'] = 'renamed_sender'
-        check(sender.post('/api/settings.php', profile_data)[0] == 403, 'username changes require current password')
+        check(sender.post('/api/settings.php', profile_data)[0] == 403, 'username request requires current password')
         profile_data['current_password'] = fixture['password']
-        check(sender.post('/api/settings.php', {**profile_data, 'username': fixture['recipient']})[0] == 409, 'duplicate username cannot replace another user')
-        check(sender.post('/api/settings.php', profile_data)[0] == 200, 'verified owner can change sign-in username')
+        check(sender.post('/api/settings.php', {**profile_data, 'username': fixture['recipient']})[0] == 409, 'duplicate requested username rejected')
+        check(sender.post('/api/settings.php', {**profile_data, 'email': fixture['recipient'] + '@example.test'})[0] == 409, 'duplicate requested email rejected')
+        status, submitted = sender.post('/api/settings.php', profile_data)
+        check(status == 201, 'verified identity change awaits administrator review')
+        check(admin.post('/api/admin-profile.php', {'request_id': submitted['request_id'], 'action': 'REJECT'})[0] == 422, 'profile rejection requires a reason')
+        check(admin.post('/api/admin-profile.php', {'request_id': submitted['request_id'], 'action': 'REJECT', 'reason': 'Please verify the new identity'})[0] == 200, 'profile rejection retains current identity')
+        check('Please verify the new identity' in sender.get('/settings.php')[1], 'customer sees profile rejection reason')
+        status, submitted = sender.post('/api/settings.php', profile_data)
+        check(admin.post('/api/admin-profile.php', {'request_id': submitted['request_id'], 'action': 'APPROVE'})[0] == 200, 'approved username becomes the current identity')
+        renamed = Client(base); renamed.login('renamed_sender', fixture['password'])
         profile_data['username'] = fixture['sender']
-        check(sender.post('/api/settings.php', profile_data)[0] == 200, 'verified owner can restore sign-in username')
-        check(sender.post('/api/settings.php', {**profile_data, 'email': fixture['recipient'] + '@example.test'})[0] == 409, 'duplicate contact email rejected')
-        check(sender.post('/api/settings.php', {**profile_data, 'id': 1, 'is_admin': 1})[0] == 200 and sender.post('/api/admin-tx.php', {'tx_id': 1, 'action': 'APPROVE'})[0] == 403, 'profile edits cannot target another user or grant admin access')
+        status, submitted = sender.post('/api/settings.php', profile_data)
+        check(admin.post('/api/admin-profile.php', {'request_id': submitted['request_id'], 'action': 'APPROVE'})[0] == 200, 'approved username can be restored through review')
+        status, submitted = sender.post('/api/settings.php', {**profile_data, 'full_name': 'Updated Sender Again', 'id': 1, 'is_admin': 1})
+        check(status == 201 and admin.post('/api/admin-profile.php', {'request_id': submitted['request_id'], 'action': 'APPROVE'})[0] == 200 and sender.post('/api/admin-tx.php', {'tx_id': 1, 'action': 'APPROVE'})[0] == 403, 'profile requests cannot change another account or grant administrator role')
+        # A name edited by an administrator while a request is pending must not be overwritten silently.
+        status, submitted = sender.post('/api/settings.php', {**profile_data, 'full_name': 'Stale Requested Name'})
+        admin.post('/api/admin-edit.php', {'id': 2, 'type': 'user', 'field': 'full_name', 'value': 'Intervening Admin Name'})
+        check(admin.post('/api/admin-profile.php', {'request_id': submitted['request_id'], 'action': 'APPROVE'})[0] == 409, 'stale profile approval cannot overwrite newer details')
+        admin.post('/api/admin-profile.php', {'request_id': submitted['request_id'], 'action': 'REJECT', 'reason': 'Submit a fresh request'})
+        check(any('Profile change' in notice['title'] for notice in json.loads(sender.get('/api/announcements.php')[1])['announcements']), 'profile decisions notify the owner')
         preferences = {'action': 'display', 'currency': 'EUR', 'appearance': 'dark', 'density': 'compact', 'reduce_motion': '1', 'hide_balances': '1'}
         check(sender.post('/api/settings.php', preferences)[0] == 200, 'appearance and privacy preferences save')
         check(sender.post('/api/settings.php', {**preferences, 'appearance': 'invalid'})[0] == 422, 'invalid appearance rejected')
@@ -177,7 +203,7 @@ with tempfile.TemporaryDirectory(prefix='alphabank-tests-') as temporary:
         sender.csrf()
         sender2.login(fixture['sender'], fixture['password'])
         profile_data['full_name'] = 'Eve "><img src=x onerror="window.injected=true">'
-        check(sender.post('/api/settings.php', profile_data)[0] == 200, 'profile names remain literal text for browser escaping checks')
+        check(admin.post('/api/admin-edit.php', {'id': 2, 'type': 'user', 'field': 'full_name', 'value': profile_data['full_name']})[0] == 200, 'profile names remain literal text for browser escaping checks')
         check(sender.get('/logout.php')[0] == 405, 'logout requires POST')
         # Fresh sessions avoid impacting browser checks below.
         status, _, _ = sender2.send('/logout.php', {'csrf_token': sender2.token})
