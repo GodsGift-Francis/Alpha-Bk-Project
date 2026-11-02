@@ -110,6 +110,23 @@ try {
     $db->exec("UPDATE users SET status = 'ACTIVE' WHERE id = 2");
     reviewTransaction($db, 1, $suspendedTransfer['id'], 'APPROVE');
     check(balance($db, 1) === '99.00' && balance($db, 2) === '1.00', 'pending transfer can be approved after reactivation');
+    $oldDsn = getenv('DB_DSN');
+    $oldAdminPassword = getenv('ALPHABANK_ADMIN_PASSWORD');
+    $adminSecret = 'Provisioned-admin-test-2026!';
+    putenv('DB_DSN=' . preg_replace('/dbname=[^;]+/', 'dbname='.$database, $oldDsn));
+    putenv('ALPHABANK_ADMIN_PASSWORD='.$adminSecret);
+    try {
+        $command = [PHP_BINARY, __DIR__.'/../scripts/provision-admin.php', 'provisioned_admin', 'provisioned@example.test', 'Provisioned Admin'];
+        $pipes = [];
+        $process = proc_open($command, [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']], $pipes);
+        fclose($pipes[0]); stream_get_contents($pipes[1]); fclose($pipes[1]); stream_get_contents($pipes[2]); fclose($pipes[2]);
+        check(proc_close($process) === 0, 'CLI administrator provisioning succeeds');
+        $created = $db->query("SELECT password_hash, is_admin FROM users WHERE username = 'provisioned_admin'")->fetch();
+        check((int)$created['is_admin'] === 1 && password_verify($adminSecret,$created['password_hash']), 'administrator uses chosen password rather than database credentials');
+    } finally {
+        $oldDsn === false ? putenv('DB_DSN') : putenv('DB_DSN='.$oldDsn);
+        $oldAdminPassword === false ? putenv('ALPHABANK_ADMIN_PASSWORD') : putenv('ALPHABANK_ADMIN_PASSWORD='.$oldAdminPassword);
+    }
     echo "Integrity checks passed: $count\n";
 } finally {
     if ($db->inTransaction()) $db->rollBack();
