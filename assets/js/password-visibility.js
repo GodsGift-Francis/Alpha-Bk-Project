@@ -14,6 +14,9 @@
         if (button) setVisible(button, button.getAttribute('aria-pressed') !== 'true');
     });
     const conceal = () => controls().forEach(button => setVisible(button, false));
+    document.addEventListener('reset', event => {
+        event.target.querySelectorAll('[data-password-toggle]').forEach(button => setVisible(button, false));
+    }, true);
     window.addEventListener('pagehide', conceal);
     document.addEventListener('visibilitychange', () => { if (document.hidden) conceal(); });
 })();
