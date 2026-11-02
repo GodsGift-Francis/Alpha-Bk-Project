@@ -1,4 +1,4 @@
-# AlphaBank design research and implementation
+# Crestivale Financial design research and implementation
 
 Research date: 25 October 2026. Scope: public website, customer banking workspace,
 administrator operations workspace and shared transactional screens.
@@ -15,14 +15,14 @@ administrator operations workspace and shared transactional screens.
 These are observations of published public pages and help material, not access to
 private customer dashboards. The application layout below is an original design
 inferred from these patterns. Product availability, financial offers, customer
-counts and regulatory claims from those institutions are not transferred to AlphaBank.
+counts and regulatory claims from those institutions are not transferred to Crestivale Financial.
 
 ## Findings translated into design decisions
 
 ### 1. Show the next useful action
 
 The reviewed sites give prominent placement to opening an account, signing in or
-moving money. AlphaBank now gives its homepage one primary enrollment action and
+moving money. Crestivale Financial now gives its homepage one primary enrollment action and
 its customer workspace direct deposit, withdrawal and transfer shortcuts. Actions
 use the existing routes and request flows, with no new financial capability implied.
 
