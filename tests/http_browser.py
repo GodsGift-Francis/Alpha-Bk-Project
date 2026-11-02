@@ -142,6 +142,42 @@ with tempfile.TemporaryDirectory(prefix='alphabank-tests-') as temporary:
         check(json.loads(sender.get('/api/announcements.php')[1])['unread_count'] == 1, 'new notifications remain unread after mark-all-read')
         check(admin.post('/api/admin-manage.php', {'type': 'transaction', 'id': 1})[0] == 409, 'financial record deletion disabled')
         check(admin.post('/api/admin-edit.php', {'type': 'transaction', 'field': 'timestamp', 'id': 1, 'value': '2000-01-01'})[0] == 409, 'original transaction timestamps immutable')
+        check(sender.post('/api/settings.php', {'action': 'profile'}, csrf=False)[0] == 403, 'profile settings require CSRF')
+        profile_data = {'action': 'profile', 'full_name': 'Updated Sender', 'username': fixture['sender'], 'email': fixture['sender'] + '@example.test'}
+        check(sender.post('/api/settings.php', profile_data)[0] == 200, 'owner can update their profile name')
+        check('Welcome back' in sender.get('/dashboard.php')[1] and 'Updated' in sender.get('/dashboard.php')[1], 'updated first name appears on dashboard')
+        profile_data['username'] = 'renamed_sender'
+        check(sender.post('/api/settings.php', profile_data)[0] == 403, 'username changes require current password')
+        profile_data['current_password'] = fixture['password']
+        check(sender.post('/api/settings.php', {**profile_data, 'username': fixture['recipient']})[0] == 409, 'duplicate username cannot replace another user')
+        check(sender.post('/api/settings.php', profile_data)[0] == 200, 'verified owner can change sign-in username')
+        profile_data['username'] = fixture['sender']
+        check(sender.post('/api/settings.php', profile_data)[0] == 200, 'verified owner can restore sign-in username')
+        check(sender.post('/api/settings.php', {**profile_data, 'email': fixture['recipient'] + '@example.test'})[0] == 409, 'duplicate contact email rejected')
+        check(sender.post('/api/settings.php', {**profile_data, 'id': 1, 'is_admin': 1})[0] == 200 and sender.post('/api/admin-tx.php', {'tx_id': 1, 'action': 'APPROVE'})[0] == 403, 'profile edits cannot target another user or grant admin access')
+        preferences = {'action': 'display', 'currency': 'EUR', 'appearance': 'dark', 'density': 'compact', 'reduce_motion': '1', 'hide_balances': '1'}
+        check(sender.post('/api/settings.php', preferences)[0] == 200, 'appearance and privacy preferences save')
+        check(sender.post('/api/settings.php', {**preferences, 'appearance': 'invalid'})[0] == 422, 'invalid appearance rejected')
+        check(sender.post('/api/settings.php', {**preferences, 'hide_balances': '2'})[0] == 422, 'invalid privacy values rejected')
+        saved_settings = sender2.get('/settings.php')[1]
+        check('data-color-mode="dark"' in saved_settings and 'data-hide-balances="true"' in saved_settings, 'preferences synchronize across sessions')
+        preferences.update(currency='USD', appearance='light', density='comfortable', reduce_motion='0', hide_balances='0')
+        check(sender.post('/api/settings.php', preferences)[0] == 200, 'privacy and motion preferences can be disabled')
+        check(admin.post('/api/settings.php', {'action': 'password', 'current_password': fixture['password'], 'new_password': 'abcd', 'confirm_password': 'abcd'})[0] == 422, 'administrator password retains stronger minimum')
+        new_password = 'Updated-private-test-2026!'
+        change = {'action': 'password', 'current_password': 'wrong', 'new_password': new_password, 'confirm_password': new_password}
+        check(sender.post('/api/settings.php', change)[0] == 403, 'password changes reject incorrect current password')
+        change['current_password'] = fixture['password']
+        check(sender.post('/api/settings.php', {**change, 'confirm_password': 'mismatch'})[0] == 422, 'password confirmation mismatch rejected')
+        check(sender.post('/api/settings.php', change)[0] == 200, 'verified password change succeeds')
+        check(sender2.get('/api/accounts.php')[0] == 401, 'password change revokes another signed-in session')
+        check(sender.get('/api/accounts.php')[0] == 200, 'password change retains current session')
+        sender.csrf()
+        check(sender.post('/api/settings.php', {'action': 'password', 'current_password': new_password, 'new_password': fixture['password'], 'confirm_password': fixture['password']})[0] == 200, 'current password can be used for subsequent verified change')
+        sender.csrf()
+        sender2.login(fixture['sender'], fixture['password'])
+        profile_data['full_name'] = 'Eve "><img src=x onerror="window.injected=true">'
+        check(sender.post('/api/settings.php', profile_data)[0] == 200, 'profile names remain literal text for browser escaping checks')
         check(sender.get('/logout.php')[0] == 405, 'logout requires POST')
         # Fresh sessions avoid impacting browser checks below.
         status, _, _ = sender2.send('/logout.php', {'csrf_token': sender2.token})
