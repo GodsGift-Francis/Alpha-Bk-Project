@@ -152,3 +152,26 @@ remain unimplemented and are labeled as such in the interface.
 Run `php scripts/migrate.php` before deploying this version to an existing database.
 Migration `002_user_preferences.php` adds preferences and session-version columns;
 new installations apply it through the normal database initialization command.
+
+## Reviewed profile changes
+
+Settings displays approved name, username and email as read-only values. The
+request dialog submits proposed details; it does not change the profile. An
+administrator must approve or reject the request in the Profile Change Queue.
+Decisions are audited, notify the owner and preserve rejection reasons. Only one
+pending request per user is accepted, identical retries reuse it, and approval
+rechecks uniqueness and the original profile snapshot to avoid overwriting newer
+details. Current-password fields in Settings have no show/hide button.
+
+Run `php scripts/migrate.php` before updating an existing installation to include
+`003_profile_change_requests.php`.
+
+For a credential-free PHP hosting package and the zero-budget development route,
+see [the free launch guide](docs/FREE_LAUNCH.md). Build with:
+
+```sh
+python scripts/package-deployment.py --output /absolute/path/AlphaBank-free-launch.zip --build-dir /absolute/path/new-empty-build-directory
+```
+
+Only the packaged `public/` directory is a web document root. The package excludes
+local data and secrets and expects private server configuration before use.
