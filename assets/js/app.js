@@ -18,26 +18,61 @@ function showMessage(target, message, error = false) {
     alert.textContent = message || 'The request could not be completed.';
     container.replaceChildren(alert);
 }
+const Feedback = {
+    show(title, detail) {
+        let overlay = document.getElementById('action-progress');
+        if (!overlay) {
+            overlay = document.createElement('div'); overlay.id = 'action-progress'; overlay.className = 'action-progress';
+            overlay.innerHTML = '<div class="progress-panel" role="status" aria-live="polite" aria-atomic="true"><img src="assets/brand-mark.svg" alt="" width="48" height="48"><span class="progress-spinner" aria-hidden="true"></span><h2></h2><p></p><div class="progress-track" aria-hidden="true"><span></span></div></div>';
+            document.body.append(overlay);
+        }
+        overlay.querySelector('h2').textContent = title; overlay.querySelector('p').textContent = detail; overlay.hidden = false;
+    },
+    hide() { const overlay = document.getElementById('action-progress'); if (overlay) overlay.hidden = true; }
+};
+function showRequestReceipt(kind, data, result) {
+    const container = document.getElementById(`${kind}-alert`);
+    const label = {deposit:'Deposit', withdraw:'Withdrawal', transfer:'Transfer'}[kind];
+    const pending = result.status === 'PENDING' || (!result.status && !result.replayed);
+    const card = document.createElement('section'); card.className = 'request-receipt'; card.tabIndex = -1;
+    card.setAttribute('role','status'); card.setAttribute('aria-label',`${label} request received`);
+    card.innerHTML = '<div class="receipt-symbol" aria-hidden="true">✓</div><p class="eyebrow">REQUEST RECEIVED</p><h3></h3><p class="receipt-copy"></p><dl><div><dt>Reference</dt><dd data-reference></dd></div><div><dt>Amount</dt><dd data-amount></dd></div><div><dt>Account</dt><dd data-account></dd></div></dl><div class="review-banner"><span class="review-dot" aria-hidden="true"></span><div><strong></strong><p></p></div></div><div class="receipt-actions"><a class="btn btn-primary" data-invoice>View invoice <span aria-hidden="true">↗</span></a><a href="dashboard.php" class="btn btn-secondary">Back to overview</a></div>';
+    card.querySelector('h3').textContent = pending ? `${label} request submitted.` : 'This request was already received.';
+    card.querySelector('.receipt-copy').textContent = pending ? 'Your request is with our team. You can follow its status on your invoice.' : 'No duplicate request was created. Open the invoice for the current review decision.';
+    card.querySelector('[data-reference]').textContent = result.reference || `TX-${result.id}`;
+    card.querySelector('[data-amount]').textContent = CURRENCY_SYMBOL + displayAmount(data.amount);
+    card.querySelector('[data-account]').textContent = maskAccountNumber(data.account_number);
+    card.querySelector('.review-banner strong').textContent = pending ? 'Awaiting administrator review' : 'Review details available';
+    card.querySelector('.review-banner p').textContent = pending ? 'Your balance changes only after approval. We’ll notify you when a decision is made.' : 'The invoice shows the latest status and any review notes.';
+    const invoice = card.querySelector('[data-invoice]');
+    if (/^\d+$/.test(String(result.id))) invoice.href = 'invoice.php?id=' + encodeURIComponent(result.id);
+    else invoice.remove();
+    container.replaceChildren(card); card.focus({preventScroll:true}); card.scrollIntoView({behavior:'auto',block:'nearest'});
+}
 async function withBusy(form, action) {
     if (form.dataset.busy === 'true' || form.dataset.completed === 'true') return;
     form.dataset.busy = 'true';
     form.setAttribute('aria-busy', 'true');
     const buttons = [...form.querySelectorAll('[type="submit"]')];
-    buttons.forEach(button => { button.disabled = true; });
+    const originals = buttons.map(button => [...button.childNodes].map(node => node.cloneNode(true)));
+    const label = {'login-form':'Signing in', 'admin-login-form':'Signing in', 'register-form':'Creating profile', 'deposit-form':'Preparing request', 'withdraw-form':'Preparing request', 'transfer-form':'Preparing request'}[form.id] || 'Saving changes';
+    buttons.forEach(button => { button.disabled = true; button.classList.add('button-busy'); button.innerHTML = '<span class="button-spinner" aria-hidden="true"></span><span class="button-busy-label"></span>'; button.querySelector('.button-busy-label').textContent = label; });
     try { await action(); }
     finally {
         form.dataset.busy = 'false';
         form.removeAttribute('aria-busy');
-        if (form.dataset.completed !== 'true') buttons.forEach(button => { button.disabled = false; });
+        buttons.forEach((button,index) => { button.classList.remove('button-busy'); button.replaceChildren(...originals[index]); if (form.dataset.completed !== 'true') button.disabled = false; });
     }
 }
 function reviewRequest(data) {
     return new Promise(resolve => {
         const dialog = document.createElement('dialog');
         dialog.setAttribute('aria-labelledby', 'request-review-title');
-        dialog.innerHTML = '<div class="card"><h3 class="card-title" id="request-review-title">Review your request</h3><dl class="review-details"></dl><p class="form-note">An administrator must approve this request before your balance changes.</p><div class="row-actions"><button type="button" class="btn btn-primary" data-confirm>Submit request</button><button type="button" class="btn btn-secondary" data-cancel>Go back</button></div></div>';
+        dialog.className = 'request-review';
+        dialog.innerHTML = '<div class="card"><p class="eyebrow">CHECK THE DETAILS</p><h3 class="card-title" id="request-review-title">Review your request</h3><dl class="review-details"></dl><p class="form-note">An administrator must approve this request before your balance changes.</p><div class="row-actions"><button type="button" class="btn btn-primary" data-confirm>Submit request</button><button type="button" class="btn btn-secondary" data-cancel>Go back</button></div></div>';
+        dialog.querySelector('h3').textContent = {DEPOSIT:'Review your deposit',WITHDRAWAL:'Review your withdrawal',TRANSFER:'Review your transfer'}[data.action] || 'Review your request';
         const details = dialog.querySelector('dl');
-        const values = [['Type', data.action], ['From account', data.account_number], ['Amount', CURRENCY_SYMBOL + displayAmount(data.amount)]];
+        const values = [['Type', {DEPOSIT:'Deposit',WITHDRAWAL:'Withdrawal',TRANSFER:'Transfer'}[data.action] || data.action], [data.action === 'TRANSFER' ? 'From account' : 'Account', data.account_number], ['Amount', CURRENCY_SYMBOL + displayAmount(data.amount)]];
         if (data.recipient_account) values.push(['Recipient account', data.recipient_account]);
         if (data.description) values.push(['Description', data.description]);
         values.forEach(([label, value]) => {
@@ -89,16 +124,24 @@ document.addEventListener('DOMContentLoaded', () => {
         form?.addEventListener('submit', event => {
             event.preventDefault();
             withBusy(form, async () => {
-                const result = await API.post(endpoint, Object.fromEntries(new FormData(form)));
-                showMessage(`${id}-alert`, result.error || result.success, !result.success);
+                const signingIn = id === 'login' || id === 'admin-login';
+                if (signingIn) Feedback.show('Signing you in', 'Opening your Crestivale workspace.');
+                let result;
+                try { result = await API.post(endpoint, Object.fromEntries(new FormData(form))); }
+                catch (_) { result = {error:'Unable to sign in. Please try again.'}; }
                 if (result.success) {
-                    const next = destination(result);
-                    if (next) { form.dataset.completed = 'true'; setTimeout(() => location.href = next, 850); }
-                    else if (id === 'settings') { form.dataset.completed = 'true'; setTimeout(() => location.reload(), 850); }
-                }
+                    form.dataset.completed = 'true';
+                    if (signingIn) { Feedback.show('Welcome back', 'Your workspace is ready.'); location.assign(destination(result)); }
+                    else { showMessage(`${id}-alert`, result.success); location.assign(destination(result)); }
+                } else { Feedback.hide(); showMessage(`${id}-alert`, result.error, true); }
             });
         });
     }
+    document.querySelectorAll('.logout-form').forEach(form => form.addEventListener('submit', event => {
+        if (form.dataset.busy === 'true') { event.preventDefault(); return; }
+        form.dataset.busy = 'true'; form.setAttribute('aria-busy','true');
+        Feedback.show('Signing you out', 'Closing your Crestivale session.');
+    }));
     const dashboard = document.getElementById('dashboard-content');
     async function loadAccounts() {
         dashboard.innerHTML = '<div class="card" role="status">Loading accounts…</div>';
@@ -158,12 +201,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 key ||= [...crypto.getRandomValues(new Uint8Array(16))].map(value => value.toString(16).padStart(2, '0')).join('');
                 form.requestKeys ||= {}; form.requestKeys[storageKey] = key;
                 try { sessionStorage.setItem(storageKey, key); } catch (_) { /* In-memory retry key remains available. */ }
+                form.querySelectorAll('.button-busy-label').forEach(label => { label.textContent = 'Submitting request'; });
                 const result = await API.post('api/transactions.php', { ...data, request_key: key });
-                showMessage(`${kind}-alert`, result.error || `${result.reference}: ${result.success}`, !result.success);
+                if (!result.success) showMessage(`${kind}-alert`, result.error, true);
                 if (result.success) {
                     form.dataset.completed = 'true';
                     try { sessionStorage.removeItem(storageKey); } catch (_) { /* No action needed. */ }
-                    setTimeout(() => location.href = 'dashboard.php', 1300);
+                    form.hidden = true;
+                    if (form.previousElementSibling?.matches('.form-note')) form.previousElementSibling.hidden = true;
+                    showRequestReceipt(kind, data, result);
                 }
             });
         });
@@ -192,4 +238,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.success) { createForm.dataset.completed = 'true'; setTimeout(() => location.reload(), 850); }
         });
     });
+});
+
+window.addEventListener('pageshow', () => {
+    Feedback.hide();
+    document.querySelectorAll('.logout-form').forEach(form => { delete form.dataset.busy; form.removeAttribute('aria-busy'); });
+    document.querySelectorAll('#login-form, #admin-login-form').forEach(form => { delete form.dataset.completed; form.querySelectorAll('[type="submit"]').forEach(button => { button.disabled = false; }); });
 });
