@@ -18,7 +18,7 @@ require __DIR__ . '/views/layout/header.php';
     <button type="button" class="btn btn-primary" id="print-invoice">Print / save PDF</button>
 </div>
 <article class="card invoice-sheet">
-    <div class="section-heading"><div><p class="eyebrow">AlphaBank · transaction record</p><h2 class="hero-title">Transaction invoice</h2></div><strong class="invoice-reference">TX-<?php echo invoiceEscape($tx['id']); ?></strong></div>
+    <div class="section-heading"><div><p class="eyebrow">Crestivale Financial · transaction record</p><h2 class="hero-title">Transaction invoice</h2></div><strong class="invoice-reference">TX-<?php echo invoiceEscape($tx['id']); ?></strong></div>
     <p class="invoice-amount"><?php echo invoiceEscape(getCurrencySymbol() . $tx['amount']); ?></p>
     <p class="text-secondary">Display currency: <?php echo invoiceEscape($_SESSION['currency'] ?? 'USD'); ?>. Your currency preference does not convert the amount.</p>
     <dl class="invoice-details">
