@@ -10,7 +10,7 @@ source = Path(__file__).resolve().parents[1]
 build = Path(args.build_dir).resolve()
 if build.exists():
     raise SystemExit('Choose a new empty build directory; existing files are never removed.')
-app = build/'alphabank'/'app'; public = build/'alphabank'/'public'; private = build/'alphabank'/'private'
+app = build/'crestivale'/'app'; public = build/'crestivale'/'public'; private = build/'crestivale'/'private'
 for folder in (app, public, private/'sessions'):
     folder.mkdir(parents=True, exist_ok=True)
 for folder in ['api','assets','database','includes','views','scripts','admin']:
@@ -25,7 +25,7 @@ shutil.copy2(source/'config/database.example.php',app/'config/database.example.p
 (private/'config.example.php').write_text("""<?php
 // Copy to config.php and replace database values privately. Never commit config.php.
 return [
-    'DB_DSN' => 'mysql:host=mysql-ACCOUNT.alwaysdata.net;dbname=ACCOUNT_alphabank;charset=utf8mb4',
+    'DB_DSN' => 'mysql:host=mysql-ACCOUNT.alwaysdata.net;dbname=ACCOUNT_crestivale;charset=utf8mb4',
     'DB_USER' => 'ACCOUNT_DATABASE_USER',
     'DB_PASSWORD' => 'SET_PRIVATE_DATABASE_PASSWORD',
     'APP_SESSION_SECURE' => '1',
@@ -49,7 +49,7 @@ return [
 (public/'.htaccess').write_text('Options -Indexes\nDirectoryIndex index.php\n',encoding='utf-8')
 (public/'.user.ini').write_text('display_errors=Off\nlog_errors=On\nsession.cookie_secure=1\nsession.cookie_httponly=1\nsession.cookie_samesite=Lax\nsession.use_strict_mode=1\n',encoding='utf-8')
 shutil.copytree(source/'assets',public/'assets',ignore=shutil.ignore_patterns('*.log','__pycache__'))
-shutil.copy2(source/'logo.jpg',public/'logo.jpg')
+# The retired raster logo is deliberately excluded; current branding uses SVG assets.
 pages=['index','login','register','logout','dashboard','settings','deposit','withdraw','transfer','invoice','admin','admin-login']
 for page in pages:
     (public/(page+'.php')).write_text("<?php\nrequire_once dirname(__DIR__).'/private/bootstrap.php';\nrequire dirname(__DIR__).'/app/"+page+".php';\n",encoding='utf-8')
