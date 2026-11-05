@@ -15,6 +15,7 @@ $firstName = $nameParts[0] ?? '';
     <div style="display: flex; gap: 0.75rem;">
         <button onclick="showCreateAccount()" class="btn btn-secondary">Open New Account</button>
         <a href="transfer.php" class="btn btn-primary">Transfer Funds</a>
+        <a href="dataset-history.php" class="btn btn-secondary">Dataset history</a>
     </div>
 </div>
 
@@ -61,3 +62,4 @@ $firstName = $nameParts[0] ?? '';
 <?php
 require_once __DIR__ . '/views/layout/footer.php';
 ?>
+
