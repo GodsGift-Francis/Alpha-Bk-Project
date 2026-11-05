@@ -40,6 +40,7 @@ require_once __DIR__ . '/views/layout/header.php';
 <h1 class="hero-title">Admin Command Center<span class="heading-dot">.</span></h1>
 <p class="text-secondary">Review requests, manage clients, and trace decisions.</p>
 </div>
+<a href="admin-history.php" class="btn btn-secondary">Dataset history</a>
 <a href="#pending-transactions" class="btn btn-primary">Review pending requests</a>
 </div>
 <nav class="operations-tabs" aria-label="Operations sections"><a href="#pending-transactions">Transaction reviews</a><a href="#pending-accounts">Account requests</a><a href="#profile-reviews">Profile changes (<?php echo (int)$profileCount; ?>)</a><a href="#clients">Client directory</a><a href="#transaction-audit">Records &amp; audit</a></nav>
@@ -415,3 +416,4 @@ require_once __DIR__ . '/views/layout/header.php';
 <script src="assets/js/admin.js" defer>
 </script>
 <?php require_once __DIR__ . '/views/layout/footer.php'; ?>
+
