@@ -50,7 +50,7 @@ return [
 (public/'.user.ini').write_text('display_errors=Off\nlog_errors=On\nsession.cookie_secure=1\nsession.cookie_httponly=1\nsession.cookie_samesite=Lax\nsession.use_strict_mode=1\n',encoding='utf-8')
 shutil.copytree(source/'assets',public/'assets',ignore=shutil.ignore_patterns('*.log','__pycache__'))
 # The retired raster logo is deliberately excluded; current branding uses SVG assets.
-pages=['index','login','register','logout','dashboard','settings','deposit','withdraw','transfer','invoice','admin','admin-login']
+pages=['index','login','register','logout','dashboard','settings','deposit','withdraw','transfer','invoice','admin','admin-login','admin-history','dataset-history']
 for page in pages:
     (public/(page+'.php')).write_text("<?php\nrequire_once dirname(__DIR__).'/private/bootstrap.php';\nrequire dirname(__DIR__).'/app/"+page+".php';\n",encoding='utf-8')
 for folder in ['api','admin']:
@@ -65,3 +65,4 @@ with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as archive:
         archive.write(path,path.relative_to(build))
 print(str(output))
 print('Packaged public entry points, private config template and CLI migrations. No database records, passwords or local reset links included.')
+
