@@ -102,6 +102,8 @@ with tempfile.TemporaryDirectory(prefix='alphabank-tests-') as temporary:
         sender.login(fixture['sender'], fixture['password'])
         admin.login(fixture['admin'], fixture['password'], administrator=True)
         recipient.login(fixture['recipient'], fixture['password'])
+        import runpy
+        runpy.run_path(str(ROOT / 'tests/synthetic_http.py'))['run'](admin, sender, recipient, check)
         check(sender.post('/api/admin-tx.php', {'tx_id': 1, 'action': 'APPROVE'})[0] == 403, 'user cannot approve transactions')
         for endpoint, data in [('/api/admin-tx.php', {'tx_id': 1, 'action': 'APPROVE'}), ('/api/admin-accounts.php', {'account_id': 3, 'action': 'APPROVE'}), ('/api/post-announcement.php', {'title': 'Test', 'content': 'Body'})]:
             check(admin.post(endpoint, data, csrf=False)[0] == 403, endpoint + ' enforces CSRF')
@@ -288,3 +290,4 @@ with tempfile.TemporaryDirectory(prefix='alphabank-tests-') as temporary:
             server.terminate()
             with contextlib.suppress(subprocess.TimeoutExpired): server.wait(timeout=5)
         subprocess.run([PHP, str(ROOT / 'tests/fixtures.php'), 'drop', DATABASE], check=True)
+
