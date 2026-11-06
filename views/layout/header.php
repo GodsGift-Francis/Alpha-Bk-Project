@@ -40,9 +40,10 @@ $titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview',
     <link rel="stylesheet" href="assets/css/design.css?v=3">
     <link rel="stylesheet" href="assets/css/preferences.css">
     <link rel="stylesheet" href="assets/css/feedback.css?v=1">
+    <?php if ($current_page === 'dataset-history.php'): ?><link rel="stylesheet" href="assets/css/dataset-history.css?v=2"><?php endif; ?>
     <script src="assets/js/preferences.js"></script>
 </head>
-<body class="<?php echo $view_mode . ($auth_page ? ' auth-page' : '') . ($public_home ? ' home-page' : ''); ?>">
+<body class="<?php echo $view_mode . ($auth_page ? ' auth-page' : '') . ($public_home ? ' home-page' : '') . ($current_page === 'dataset-history.php' ? ' page-dataset-history' : ''); ?>">
 <a class="skip-link" href="#main-content">Skip to content</a>
 <header class="site-header">
     <div class="container">
@@ -79,3 +80,4 @@ $titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview',
 <?php elseif (in_array($current_page,['deposit.php','withdraw.php','transfer.php'],true)): ?>
 <div class="task-heading"><p class="eyebrow"><?php echo $current_page === 'settings.php' ? 'MAKE IT YOURS' : 'YOUR MONEY, IN MOTION'; ?></p><h1><?php echo $current_page === 'settings.php' ? 'The details that matter.' : 'Make your next move.'; ?></h1><p>Simple steps. A clear record. Always in your control.</p></div>
 <?php endif; ?>
+
