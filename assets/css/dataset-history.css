@@ -1,0 +1,411 @@
+/* High contrast styles for imported account history and its transaction documents. */
+.dataset-history-card {
+    color: #24332b;
+    background: #fff;
+    border-color: #d5dfd8;
+}
+
+.dataset-history-card h2 {
+    color: #172a20;
+}
+
+.dataset-history-card > p {
+    color: #34463c;
+    line-height: 1.65;
+}
+
+.dataset-history-card .dataset-balance-summary {
+    color: #173e2e;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.dataset-history-card .dataset-note,
+.dataset-history-card .dataset-synthetic-label {
+    color: #4c5b52;
+    font-size: .82rem;
+}
+
+.dataset-table-container {
+    background: #fff;
+    border: 1px solid #cbd7cf;
+    border-radius: 12px;
+}
+
+.dataset-history-table {
+    color: #24332b;
+    min-width: 790px;
+}
+
+.dataset-history-table th {
+    color: #263a30;
+    background: #e8efea;
+    border-bottom: 1px solid #cbd7cf;
+    font-size: .72rem;
+    letter-spacing: .045em;
+}
+
+.dataset-history-table td {
+    color: #26352d;
+    border-color: #dce4de;
+    font-size: .9rem;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+    vertical-align: middle;
+}
+
+.dataset-history-table tbody tr:nth-child(even) {
+    background: #f7f9f7;
+}
+
+.dataset-history-table tbody tr:hover {
+    background: #eef4ef;
+}
+
+.dataset-history-table .dataset-amount {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.dataset-history-table .dataset-amount.is-credit {
+    color: #17613d;
+}
+
+.dataset-history-table .dataset-amount.is-debit {
+    color: #8b352e;
+}
+
+.dataset-history-card a {
+    color: #075c47;
+    font-weight: 650;
+    text-underline-offset: .18em;
+}
+
+.dataset-history-card a:hover {
+    color: #073d31;
+}
+
+.dataset-history-card a:focus-visible,
+.dataset-table-container:focus-visible {
+    outline: 3px solid #176b50;
+    outline-offset: 3px;
+}
+
+.dataset-history-card .dataset-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .75rem;
+    color: #34463c;
+    margin: 1rem 0;
+}
+
+.dataset-history-card .dataset-pagination span {
+    color: #34463c;
+}
+
+:root[data-theme="dark"] .dataset-history-card {
+    color: #e7eee9;
+    background: #1d3027;
+    border-color: #43584b;
+}
+
+:root[data-theme="dark"] .dataset-history-card h2 {
+    color: #f0f5f1;
+}
+
+:root[data-theme="dark"] .dataset-history-card > p,
+:root[data-theme="dark"] .dataset-history-card .dataset-note,
+:root[data-theme="dark"] .dataset-history-card .dataset-synthetic-label {
+    color: #c1d0c6;
+}
+
+:root[data-theme="dark"] .dataset-history-card .dataset-balance-summary {
+    color: #d1eadb;
+}
+
+:root[data-theme="dark"] .dataset-table-container {
+    background: #192a22;
+    border-color: #43584b;
+}
+
+:root[data-theme="dark"] .dataset-history-table,
+:root[data-theme="dark"] .dataset-history-table td {
+    color: #e2ebe5;
+}
+
+:root[data-theme="dark"] .dataset-history-table th {
+    color: #e3ede6;
+    background: #2b4235;
+    border-color: #4a6253;
+}
+
+:root[data-theme="dark"] .dataset-history-table td {
+    border-color: #3b5144;
+}
+
+:root[data-theme="dark"] .dataset-history-table tbody tr:nth-child(even),
+:root[data-theme="dark"] .dataset-history-table tbody tr:hover {
+    background: #22392c;
+}
+
+:root[data-theme="dark"] .dataset-history-table .dataset-amount.is-credit {
+    color: #a5e2bd;
+}
+
+:root[data-theme="dark"] .dataset-history-table .dataset-amount.is-debit {
+    color: #ffb5a9;
+}
+
+:root[data-theme="dark"] .dataset-history-card a {
+    color: #b9e5ca;
+}
+
+:root[data-theme="dark"] .dataset-history-card a:hover {
+    color: #e1f6e9;
+}
+
+:root[data-theme="dark"] .dataset-history-card .dataset-pagination,
+:root[data-theme="dark"] .dataset-history-card .dataset-pagination span {
+    color: #c1d0c6;
+}
+
+:root[data-theme="dark"] .dataset-history-card a:focus-visible,
+:root[data-theme="dark"] .dataset-table-container:focus-visible {
+    outline-color: #b9e5ca;
+}
+
+@media (max-width: 700px) {
+    .dataset-history-card {
+        padding: 1.1rem;
+    }
+
+    .dataset-history-card > p {
+        font-size: .92rem;
+    }
+
+    .dataset-history-card .dataset-balance-summary {
+        line-height: 1.65;
+    }
+
+    .dataset-history-table {
+        min-width: 0;
+    }
+
+    .dataset-history-table tr {
+        padding: .7rem;
+        border-color: #cbd7cf;
+        background: #fff;
+    }
+
+    .dataset-history-table td {
+        display: grid;
+        grid-template-columns: minmax(6rem, 34%) minmax(0, 1fr);
+        gap: .65rem;
+        padding: .65rem .4rem;
+        color: #26352d;
+        font-size: .9rem;
+        line-height: 1.5;
+    }
+
+    .dataset-history-table td::before {
+        color: #34463c;
+        font-size: .82rem;
+        font-weight: 700;
+        line-height: 1.5;
+    }
+
+    .dataset-history-table td:first-child {
+        color: #172a20;
+        font-size: .95rem;
+        font-weight: 700;
+    }
+
+    .dataset-history-table td:first-child::before {
+        content: "Date";
+    }
+
+    :root[data-theme="dark"] .dataset-history-table tr {
+        background: #1d3027;
+        border-color: #43584b;
+    }
+
+    :root[data-theme="dark"] .dataset-history-table td {
+        color: #e2ebe5;
+    }
+
+    :root[data-theme="dark"] .dataset-history-table td::before {
+        color: #c1d0c6;
+    }
+
+    :root[data-theme="dark"] .dataset-history-table td:first-child {
+        color: #f0f5f1;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .dataset-history-table th,
+    .dataset-history-table td,
+    .dataset-table-container,
+    .dataset-history-table tr {
+        border-color: #64756a;
+    }
+}
+
+/* Apply the same accessible palette to the currently published template. */
+body.page-dataset-history .card {
+    color: #24332b;
+    background: #fff;
+    border-color: #d5dfd8;
+}
+
+body.page-dataset-history .card h2 {
+    color: #172a20;
+}
+
+body.page-dataset-history .card > p {
+    color: #34463c;
+    line-height: 1.65;
+}
+
+body.page-dataset-history .card .text-secondary,
+body.page-dataset-history .card nav {
+    color: #4c5b52;
+}
+
+body.page-dataset-history .table-container {
+    background: #fff;
+    border-color: #cbd7cf;
+}
+
+body.page-dataset-history .history-table {
+    color: #24332b;
+    min-width: 790px;
+}
+
+body.page-dataset-history .history-table th {
+    color: #263a30;
+    background: #e8efea;
+    border-color: #cbd7cf;
+    font-size: .72rem;
+}
+
+body.page-dataset-history .history-table td {
+    color: #26352d;
+    border-color: #dce4de;
+    font-size: .9rem;
+    line-height: 1.55;
+}
+
+body.page-dataset-history .history-table tbody tr:nth-child(even) {
+    background: #f7f9f7;
+}
+
+body.page-dataset-history .history-table tbody tr:hover {
+    background: #eef4ef;
+}
+
+body.page-dataset-history .card a {
+    color: #075c47;
+    font-weight: 650;
+    text-underline-offset: .18em;
+}
+
+:root[data-theme="dark"] body.page-dataset-history .card {
+    color: #e7eee9;
+    background: #1d3027;
+    border-color: #43584b;
+}
+
+:root[data-theme="dark"] body.page-dataset-history .card h2 {
+    color: #f0f5f1;
+}
+
+:root[data-theme="dark"] body.page-dataset-history .card > p,
+:root[data-theme="dark"] body.page-dataset-history .card .text-secondary,
+:root[data-theme="dark"] body.page-dataset-history .card nav {
+    color: #c1d0c6;
+}
+
+:root[data-theme="dark"] body.page-dataset-history .table-container {
+    background: #192a22;
+    border-color: #43584b;
+}
+
+:root[data-theme="dark"] body.page-dataset-history .history-table,
+:root[data-theme="dark"] body.page-dataset-history .history-table td {
+    color: #e2ebe5;
+}
+
+:root[data-theme="dark"] body.page-dataset-history .history-table th {
+    color: #e3ede6;
+    background: #2b4235;
+    border-color: #4a6253;
+}
+
+:root[data-theme="dark"] body.page-dataset-history .history-table td {
+    border-color: #3b5144;
+}
+
+:root[data-theme="dark"] body.page-dataset-history .history-table tbody tr:nth-child(even),
+:root[data-theme="dark"] body.page-dataset-history .history-table tbody tr:hover {
+    background: #22392c;
+}
+
+:root[data-theme="dark"] body.page-dataset-history .card a {
+    color: #b9e5ca;
+}
+
+@media (max-width: 700px) {
+    body.page-dataset-history .card {
+        padding: 1.1rem;
+    }
+
+    body.page-dataset-history .history-table {
+        min-width: 0;
+    }
+
+    body.page-dataset-history .history-table tr {
+        padding: .7rem;
+        border-color: #cbd7cf;
+        background: #fff;
+    }
+
+    body.page-dataset-history .history-table td {
+        display: grid;
+        grid-template-columns: minmax(6rem, 34%) minmax(0, 1fr);
+        gap: .65rem;
+        padding: .65rem .4rem;
+        color: #26352d;
+        font-size: .9rem;
+        line-height: 1.5;
+    }
+
+    body.page-dataset-history .history-table td:nth-child(2)::before { content: "Counterparty / description"; }
+    body.page-dataset-history .history-table td:nth-child(3)::before { content: "Type"; }
+    body.page-dataset-history .history-table td:nth-child(4)::before { content: "Amount (USD)"; }
+    body.page-dataset-history .history-table td:nth-child(5)::before { content: "Running balance"; }
+    body.page-dataset-history .history-table td:nth-child(6)::before { content: "Document"; }
+
+    body.page-dataset-history .history-table td::before {
+        color: #34463c;
+        font-size: .82rem;
+        font-weight: 700;
+        line-height: 1.5;
+    }
+
+    :root[data-theme="dark"] body.page-dataset-history .history-table tr {
+        background: #1d3027;
+        border-color: #43584b;
+    }
+
+    :root[data-theme="dark"] body.page-dataset-history .history-table td {
+        color: #e2ebe5;
+    }
+
+    :root[data-theme="dark"] body.page-dataset-history .history-table td::before {
+        color: #c1d0c6;
+    }
+}
+
