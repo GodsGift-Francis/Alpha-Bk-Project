@@ -16,6 +16,8 @@ function validateSyntheticHistory(string $json): array {
         foreach (['transaction_id', 'reference', 'counterparty', 'description', 'date'] as $key) {
             if (!is_string($row[$key] ?? null) || trim($row[$key]) === '' || strlen($row[$key]) > 500) throw new InvalidArgumentException('Missing or oversized transaction details.');
         }
+        $row['counterparty'] = trim((string)preg_replace('/^fictional(?:\s+|$)/iu', '', trim($row['counterparty'])));
+        if ($row['counterparty'] === '') throw new InvalidArgumentException('Counterparty details cannot be empty.');
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $row['date']);
         if (!$date || $date->format('Y-m-d') !== $row['date'] || $row['date'] < $previous || $row['date'] > gmdate('Y-m-d')) throw new InvalidArgumentException('Dates must be chronological, between 2001 and today.');
         $previous = $row['date'];
@@ -40,7 +42,7 @@ function generateSyntheticHistory(int $closing, int $count, string $start, strin
     $from=DateTimeImmutable::createFromFormat('!Y-m-d',$start); $to=DateTimeImmutable::createFromFormat('!Y-m-d',$end);
     if (!$from || !$to || $from->format('Y-m-d')!==$start || $to->format('Y-m-d')!==$end || $start<'2001-01-01' || $end>gmdate('Y-m-d') || $start>$end || $count<1 || $count>1000) throw new InvalidArgumentException('Choose 1–1,000 transactions and valid dates between 2001 and today.');
     $batch='SYN-'.strtoupper(bin2hex(random_bytes(6))); $rows=[]; $net=0;
-    $names=['Fictional Cedar Services','Fictional Harbor Supply','Fictional Maple Studio','Fictional Oak Retail'];
+    $names=['Cedar Services','Harbor Supply','Maple Studio','Oak Retail'];
     for ($i=0;$i<$count;$i++) {
         $type=['deposit','withdrawal','transfer'][random_int(0,2)];
         $direction=$type==='deposit'?'credit':($type==='withdrawal'?'debit':(random_int(0,1)?'credit':'debit'));
