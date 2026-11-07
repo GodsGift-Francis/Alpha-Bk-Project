@@ -15,7 +15,6 @@ $firstName = $nameParts[0] ?? '';
     <div style="display: flex; gap: 0.75rem;">
         <button onclick="showCreateAccount()" class="btn btn-secondary">Open New Account</button>
         <a href="transfer.php" class="btn btn-primary">Transfer Funds</a>
-        <a href="dataset-history.php" class="btn btn-secondary">Dataset history</a>
     </div>
 </div>
 
@@ -47,7 +46,7 @@ $firstName = $nameParts[0] ?? '';
     </div>
 </dialog>
 
-<div class="section-heading"><h2 class="card-title">Transaction History</h2><span class="text-secondary text-sm">Open an invoice for status and review details</span></div>
+<div class="section-heading history-section-heading"><div><h2 class="card-title">Transaction History</h2><span class="text-secondary text-sm">Five recent records at a time · Open an invoice for review details</span></div><a href="dataset-history.php" class="btn btn-secondary">Dataset History <span aria-hidden="true">↗</span></a></div>
 <form id="history-filters" class="filter-bar" role="search" aria-label="Filter transaction history">
     <div><label for="history-query">Search</label><input type="search" id="history-query" name="q" maxlength="100" placeholder="Reference, account or description"></div>
     <div><label for="history-type">Type</label><select id="history-type" name="type"><option value="">All types</option><option value="DEPOSIT">Deposit</option><option value="WITHDRAWAL">Withdrawal</option><option value="TRANSFER_OUT">Transfer out</option><option value="TRANSFER_IN">Transfer in</option></select></div>
