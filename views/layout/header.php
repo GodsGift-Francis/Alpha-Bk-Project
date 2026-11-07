@@ -37,7 +37,7 @@ $titles = ['dashboard.php'=>'Your overview', 'admin.php'=>'Operations overview',
     <script>const CURRENCY_SYMBOL = <?php echo json_encode($logged_in ? getCurrencySymbol() : '$'); ?>;</script>
     <link rel="icon" type="image/svg+xml" sizes="any" href="assets/favicon.svg?v=3">
     <link rel="stylesheet" href="assets/css/main.css">
-    <link rel="stylesheet" href="assets/css/design.css?v=3">
+    <link rel="stylesheet" href="assets/css/design.css?v=4">
     <link rel="stylesheet" href="assets/css/preferences.css">
     <link rel="stylesheet" href="assets/css/feedback.css?v=1">
     <?php if ($current_page === 'dataset-history.php'): ?><link rel="stylesheet" href="assets/css/dataset-history.css?v=2"><?php endif; ?>
