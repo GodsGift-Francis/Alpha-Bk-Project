@@ -45,3 +45,19 @@ input[type],select,textarea{background:#fafbf8;border-radius:9px;border-color:#d
 .slab-mark img{display:block;width:88px;height:88px;margin:6px 0}
 .auth-emblem img{display:block;width:128px;height:128px;max-width:65%;border-radius:28px}
 @media(max-width:360px){.brand{gap:8px}.brand-wordmark small{font-size:.43rem;letter-spacing:.22em}.footer-brand{font-size:.95rem}}
+
+/* Dashboard transaction history cards and contextual dataset link. */
+.history-section-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.history-section-heading>div{display:grid;gap:4px}
+.history-section-heading .card-title{margin:0}
+.transaction-history-list{display:grid;gap:12px;list-style:none;margin:0;padding:0}
+.transaction-history-item{margin:0;padding:18px 20px}
+.transaction-history-topline{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:16px;align-items:center}
+.transaction-history-identity{display:grid;gap:5px}
+.transaction-reference{font-size:.86rem;letter-spacing:.015em}
+.transaction-history-type{white-space:nowrap}
+.transaction-history-amount{font-variant-numeric:tabular-nums;font-size:1rem;text-align:right;white-space:nowrap}
+.transaction-history-meta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto;gap:12px 22px;align-items:center;margin:14px 0 0;padding:12px 0 0;border-top:1px solid var(--border-color)}
+.transaction-history-meta dt{font-size:.67rem;color:var(--text-secondary)}
+.transaction-history-meta dd{margin:4px 0 0;overflow-wrap:anywhere;font-size:.78rem}
+@media(max-width:700px){.history-section-heading{align-items:flex-start}.history-section-heading .card-title{font-size:1.02rem}.history-section-heading>.btn{font-size:.67rem;min-height:40px;padding:9px 11px;white-space:nowrap}.transaction-history-item{padding:15px}.transaction-history-topline{grid-template-columns:minmax(0,1fr) auto;gap:8px 10px}.transaction-history-type{grid-column:2;grid-row:1}.transaction-history-amount{grid-column:1/-1;text-align:left;font-size:1.08rem}.transaction-history-meta{grid-template-columns:1fr;gap:10px}}
