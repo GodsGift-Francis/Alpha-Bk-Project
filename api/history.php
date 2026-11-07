@@ -9,7 +9,7 @@ function queryText(string $field, int $max = 100): string {
 $pageRaw = queryText('page', 6);
 if ($pageRaw !== '' && (!preg_match('/^[0-9]+$/D', $pageRaw) || (int)$pageRaw < 1)) throw new InvalidArgumentException('Invalid page.');
 $page = max(1, (int)$pageRaw);
-$limit = 20;
+$limit = 5;
 $where = ['a.user_id = ?'];
 $params = [$user];
 $status = queryText('status', 20);
